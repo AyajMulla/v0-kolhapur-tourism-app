@@ -1,3 +1,4 @@
+/* Homepage */
 "use client"
 
 import { useState } from "react"

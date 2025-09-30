@@ -19,7 +19,7 @@ export const metadata = {
   title: "Kolhapur Tourism - Discover the Cultural Capital of Maharashtra",
   description:
     "Explore the rich heritage, temples, forts, and natural beauty of Kolhapur. Your complete guide to tourist places, food, and accommodation.",
-  generator: "v0.app",
+  
 }
 
 export default function RootLayout({ children }) {
