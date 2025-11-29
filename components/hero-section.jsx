@@ -28,7 +28,7 @@ export default function HeroSection({ onSearch }) {
       {/* Background with multiple images */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60 z-10" />
-        <div className="grid grid-cols-2 md:grid-cols-4 h-full">
+        <div className="grid grid-cols-2 md:grid-cols-6 h-full">
           <div
             className="bg-cover bg-center transition-transform duration-700 hover:scale-105"
             style={{ backgroundImage: "url(/mahalaxmi-temple-kolhapur.jpg)" }}
@@ -44,6 +44,14 @@ export default function HeroSection({ onSearch }) {
           <div
             className="bg-cover bg-center transition-transform duration-700 hover:scale-105"
             style={{ backgroundImage: "url(/gaganbawada-hills-maharashtra.jpg)" }}
+          />
+          <div
+            className="bg-cover bg-center transition-transform duration-700 hover:scale-105"
+            style={{ backgroundImage: "url(/kolhapur-new-palace-architecture.jpg)" }}
+          />
+          <div
+            className="bg-cover bg-center transition-transform duration-700 hover:scale-105"
+            style={{ backgroundImage: "url(/dajipur-bison-sanctuary.jpg)" }}
           />
         </div>
       </div>
