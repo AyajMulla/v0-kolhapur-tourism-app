@@ -52,7 +52,7 @@ export default function Header() {
             <Link href="/" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
               Home
             </Link>
-            <Link href="#places" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
+            <Link href="/places" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
               Places
             </Link>
             <Link href="#culture" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">

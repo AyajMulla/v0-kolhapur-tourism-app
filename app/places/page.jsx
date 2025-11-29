@@ -1,0 +1,159 @@
+"use client"
+
+import { useState, useMemo } from "react"
+import { touristPlaces } from "@/data/tourism-data"
+import Image from "next/image"
+import { MapPin, Search, SlidersHorizontal, Star } from "lucide-react"
+
+export default function PlacesPage() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("All")
+  const [selectedTaluka, setSelectedTaluka] = useState("All")
+  const [sortBy, setSortBy] = useState("rating-desc")
+
+  // Generate unique categories and talukas
+  const categories = ["All", ...new Set(touristPlaces.map((p) => p.category))]
+  const talukas = ["All", ...new Set(touristPlaces.map((p) => p.talukaName))]
+
+  // Filtering + sorting logic
+  const filteredPlaces = useMemo(() => {
+    let places = touristPlaces
+
+    // Search filter
+    if (searchQuery.trim() !== "") {
+      places = places.filter((p) =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    // Category filter
+    if (selectedCategory !== "All") {
+      places = places.filter((p) => p.category === selectedCategory)
+    }
+
+    // Taluka filter
+    if (selectedTaluka !== "All") {
+      places = places.filter((p) => p.talukaName === selectedTaluka)
+    }
+
+    // Sorting
+    if (sortBy === "rating-desc") {
+      places = [...places].sort((a, b) => b.rating - a.rating)
+    } else if (sortBy === "rating-asc") {
+      places = [...places].sort((a, b) => a.rating - b.rating)
+    }
+
+    return places
+  }, [searchQuery, selectedCategory, selectedTaluka, sortBy])
+
+  return (
+    <div className="container mx-auto px-4 py-10">
+
+      {/* Page Title */}
+      <h1 className="text-4xl font-bold text-orange-600 mb-6">Explore Tourist Places</h1>
+      
+      {/* Filters Section */}
+      <div className="bg-white shadow-sm border p-5 rounded-xl mb-10">
+        <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-4">
+
+          {/* Search */}
+          <div className="flex items-center border rounded-lg px-3 py-2 bg-gray-50">
+            <Search className="h-5 w-5 text-gray-500 mr-2" />
+            <input
+              type="text"
+              placeholder="Search places..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-transparent outline-none text-gray-700"
+            />
+          </div>
+
+          {/* Category Filter */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-gray-700"
+          >
+            {categories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          {/* Taluka Filter */}
+          <select
+            value={selectedTaluka}
+            onChange={(e) => setSelectedTaluka(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-gray-700"
+          >
+            {talukas.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+
+          {/* Sorting */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-gray-700"
+          >
+            <option value="rating-desc">Rating: High → Low</option>
+            <option value="rating-asc">Rating: Low → High</option>
+          </select>
+
+        </div>
+      </div>
+
+      {/* Results Count */}
+      <p className="text-gray-600 font-medium mb-5">
+        Showing {filteredPlaces.length} places
+      </p>
+
+      {/* Places Grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredPlaces.map((place) => (
+          <div 
+            key={place.id}
+            className="bg-white rounded-xl shadow-md hover:shadow-2xl transition border overflow-hidden cursor-pointer"
+          >
+            {/* Image */}
+            <div className="relative h-52 w-full">
+              <Image
+                src={place.image || "/default-place.jpg"}
+                alt={place.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+
+            {/* Content */}
+            <div className="p-5">
+              <h2 className="text-xl font-semibold text-gray-800">{place.name}</h2>
+
+              <div className="flex items-center text-gray-500 text-sm mt-1">
+                <MapPin className="h-4 w-4 mr-1 text-orange-600" />
+                {place.talukaName}
+              </div>
+
+              <p className="mt-2 text-gray-700 text-sm">
+                {place.description.slice(0, 120)}...
+              </p>
+
+              <p className="mt-2 text-orange-600 text-sm font-semibold">
+                {place.category}
+              </p>
+
+              <div className="mt-2 flex items-center text-yellow-500">
+                <Star className="h-4 w-4 mr-1" />
+                <span className="font-medium">{place.rating}</span>
+              </div>
+
+              <p className="text-sm text-gray-600 mt-2">
+                Best Time: {place.bestTimeToVisit}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
