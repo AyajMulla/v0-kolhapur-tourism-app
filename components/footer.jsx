@@ -119,11 +119,11 @@ export default function Footer() {
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-5 w-5 text-orange-400 flex-shrink-0" />
-                <p className="text-gray-300 text-sm">+91 231 2654321</p>
+                <p className="text-gray-300 text-sm">+91 935 9405574</p>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-orange-400 flex-shrink-0" />
-                <p className="text-gray-300 text-sm">info@kolhapurtourism.com</p>
+                <p className="text-gray-300 text-sm">ayajmulla2341@gmail.com</p>
               </div>
             </div>
           </div>
