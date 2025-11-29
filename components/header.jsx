@@ -61,12 +61,12 @@ export default function Header() {
             <Link href="#food" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
               Food
             </Link>
-            <Link href="#hotels" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
+            <Link href="/hotels" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
               Hotels
             </Link>
-            <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white">
+            {/* <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white">
               Plan Trip
-            </Button>
+            </Button> */}
           </nav>
 
           {/* Mobile menu button */}
