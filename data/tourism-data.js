@@ -228,19 +228,7 @@ export const kolhapurTalukas = [
         nearbyRestaurants: ["karveer-cafe"],
         nearbyHotels: ["karveer-inn"],
       },
-      {
-        id: "karveer-viewpoint",
-        name: "Karveer Hill Viewpoint",
-        description:
-          "A peaceful viewpoint near Jyotiba hill offering panoramic views of Kolhapur city and surrounding countryside, especially beautiful during sunset.",
-        image: "/karveer-viewpoint.jpg",
-        category: "Nature",
-        rating: 4.2,
-        visitDuration: "1-2 hours",
-        bestTimeToVisit: "Evening",
-        nearbyRestaurants: ["hillview-bhojanalay"],
-        nearbyHotels: ["temple-view-stay", "karveer-inn"],
-      },
+
     ],
   },
   {
@@ -250,11 +238,11 @@ export const kolhapurTalukas = [
     image: "/shahuwadi.jpg",
     places: [
       {
-        id: "ghotala-waterfall",
-        name: "Ghotala Waterfall",
+        id: "manoli-waterfall",
+        name: "Manoli Waterfall",
         description:
           "Hidden gem waterfall surrounded by dense greenery and small trekking trails. Ideal for monsoon picnics and nature lovers.",
-        image: "/ghotala-waterfall.jpg",
+        image: "/manoli-waterfall.jpeg",
         category: "Nature",
         rating: 4.3,
         visitDuration: "2-4 hours",
@@ -263,11 +251,11 @@ export const kolhapurTalukas = [
         nearbyHotels: ["shahuwadi-nature-resort"],
       },
       {
-        id: "ambarde-dam",
-        name: "Ambarde Dam",
+        id: "manoli-dam",
+        name: "Manoli Dam",
         description:
           "A serene dam area near Shahuwadi offering peaceful surroundings, calm backwaters, and scenic views of the Western Ghats.",
-        image: "/ambarde-dam.jpg",
+        image: "/manoli-dam.jpg",
         category: "Nature",
         rating: 4.1,
         visitDuration: "1-3 hours",
@@ -332,11 +320,11 @@ export const kolhapurTalukas = [
     image: "/hatkanangle.jpg",
     places: [
       {
-        id: "hatkanangle-temple",
-        name: "Hatkanangale Temple",
+        id: "ramling-temple",
+        name: "Ramling Temple",
         description:
           "Ancient Shiva temple known for its calm atmosphere, traditional architecture, and spiritual significance for locals.",
-        image: "/hatkanangle-temple.jpg",
+        image: "/ramling-temple.jpg",
         category: "Religious",
         rating: 4.4,
         visitDuration: "1-2 hours",
@@ -344,19 +332,7 @@ export const kolhapurTalukas = [
         nearbyRestaurants: ["hatkanangle-family-restaurant"],
         nearbyHotels: ["hatkanangle-comfort-stay"],
       },
-      {
-        id: "nandani-river-ghat",
-        name: "Nandani River Ghat",
-        description:
-          "Quiet riverside ghat ideal for a peaceful walk, small temple visits, and watching rural life along the riverbanks.",
-        image: "/nandani-river-ghat.jpg",
-        category: "Nature",
-        rating: 4.0,
-        visitDuration: "1-2 hours",
-        bestTimeToVisit: "Early morning or evening",
-        nearbyRestaurants: ["hatkanangle-family-restaurant"],
-        nearbyHotels: ["hatkanangle-comfort-stay"],
-      },
+  
       {
         id: "hupari-temple",
         name: "Hupari Ganesh Temple",
@@ -383,7 +359,7 @@ export const kolhapurTalukas = [
         name: "Narsobawadi",
         description:
           "Famous pilgrimage site of Shri Dattatreya located on the banks of Krishna River. Devotees visit for darshan, pradakshina, and riverside peace.",
-        image: "/narsobawadi.jpg",
+        image: "/narsobawadi.jpeg",
         category: "Religious",
         rating: 4.7,
         visitDuration: "2-3 hours",
@@ -426,11 +402,11 @@ export const kolhapurTalukas = [
     image: "/gadhinglaj.jpg",
     places: [
       {
-        id: "wadi-dam",
-        name: "Wadi Dam",
+        id: "karambali-dam",
+        name: "Karambali Dam",
         description:
           "Beautiful dam surrounded by greenery, perfect for picnics, photography, and watching the sunset over calm backwaters.",
-        image: "/wadi-dam.jpg",
+        image: "/Karambali-dam.jpg",
         category: "Nature",
         rating: 4.0,
         visitDuration: "1-3 hours",
@@ -439,12 +415,12 @@ export const kolhapurTalukas = [
         nearbyHotels: ["gadhinglaj-lake-resort"],
       },
       {
-        id: "gadhinglaj-lake",
-        name: "Gadhinglaj City Lake",
+        id: "hiranyakeshi-temple",
+        name: "Hiranyakeshi-Temple",
         description:
           "A small lake near the town area where locals gather in the evenings. Good for a short walk and relaxation.",
-        image: "/gadhinglaj-city-lake.jpg",
-        category: "Nature",
+        image: "/hiranyakeshi-temple.jpg",
+        category: "Religious",
         rating: 3.9,
         visitDuration: "1-2 hours",
         bestTimeToVisit: "Evening",
@@ -499,11 +475,11 @@ export const kolhapurTalukas = [
         nearbyHotels: ["tilari-hill-resort"],
       },
       {
-        id: "kalmani-waterfall",
-        name: "Kalmani Waterfall",
+        id: "nangartas-waterfall",
+        name: "Nangartas-waterfall",
         description:
           "Seasonal waterfall hidden within dense forests of Chandgad, offering a peaceful environment and a short hike through greenery.",
-        image: "/kalmani-waterfall.jpg",
+        image: "/nangartas-waterfall.jpg",
         category: "Nature",
         rating: 4.2,
         visitDuration: "2-3 hours",
@@ -520,28 +496,15 @@ export const kolhapurTalukas = [
     image: "/ajara.jpg",
     places: [
       {
-        id: "ajara-ghat-view",
-        name: "Ajara Ghat Viewpoint",
+        id: "amboli-ghat-view",
+        name: "Amboli Ghat Viewpoint",
         description:
           "Ghat section with mesmerizing valley views, cool breeze, and winding roads. A great stopover while traveling towards Goa.",
-        image: "/ajara-ghat.jpg",
+        image: "/amboli-ghat.jpg",
         category: "Nature",
         rating: 4.3,
         visitDuration: "1-2 hours",
         bestTimeToVisit: "October to March",
-        nearbyRestaurants: ["ajara-rice-house"],
-        nearbyHotels: ["ajara-holiday-home"],
-      },
-      {
-        id: "ajara-rice-farms",
-        name: "Ajara Ghansal Rice Farms",
-        description:
-          "Lush green paddy fields where the famous Ajara Ghansal rice is cultivated. Offers a glimpse into local farming practices and rural life.",
-        image: "/ajara-rice-farms.jpg",
-        category: "Rural",
-        rating: 4.1,
-        visitDuration: "1-2 hours",
-        bestTimeToVisit: "July to November",
         nearbyRestaurants: ["ajara-rice-house"],
         nearbyHotels: ["ajara-holiday-home"],
       },
@@ -567,11 +530,11 @@ export const kolhapurTalukas = [
     image: "/bhudargad.jpg",
     places: [
       {
-        id: "gargoti-fort",
-        name: "Gargoti Fort",
+        id: "bhudargad-fort",
+        name: "Bhudargad-Fort",
         description:
           "Historic fort that offers panoramic views of the surrounding rural landscape, with remnants of old fortifications and village settlements nearby.",
-        image: "/gargoti-fort.jpg",
+        image: "/bhudargad-fort.jpg",
         category: "Historical",
         rating: 4.1,
         visitDuration: "2-4 hours",
@@ -593,11 +556,11 @@ export const kolhapurTalukas = [
         nearbyHotels: ["gargoti-fort-stay"],
       },
       {
-        id: "local-lake-bhudargad",
-        name: "Bhudargad Village Lake",
+        id: "gargoti-city-view-point",
+        name: "Gargoti-City-View-Point",
         description:
           "Small village lake surrounded by trees and fields, offering a peaceful rural atmosphere and a glimpse of everyday village life.",
-        image: "/bhudargad-lake.jpg",
+        image: "/gargoti-city-view-point.jpg",
         category: "Nature",
         rating: 3.9,
         visitDuration: "1-2 hours",
