@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react"
 import Image from "next/image"
 import { MapPin, Search, SlidersHorizontal, Star } from "lucide-react"
 import PlaceDetailModal from "@/components/place-detail-modal"
+import { API_BASE_URL } from "@/lib/config"
 
 export default function PlacesPage() {
   const [touristPlaces, setTouristPlaces] = useState([])
@@ -16,7 +17,7 @@ export default function PlacesPage() {
   const [sortBy, setSortBy] = useState("rating-desc")
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/places")
+    fetch(`${API_BASE_URL}/api/places`)
       .then(res => res.json())
       .then(data => {
         setTouristPlaces(data)

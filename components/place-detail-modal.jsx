@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import WeatherModal from "./weather-modal"
 import RouteModal from "./route-modal"
+import { API_BASE_URL } from "@/lib/config"
 
 export default function PlaceDetailModal({ place, onClose }) {
   const [showWeather, setShowWeather] = useState(false)
@@ -20,8 +21,8 @@ export default function PlaceDetailModal({ place, onClose }) {
 
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:5000/api/restaurants").then(res => res.json()),
-      fetch("http://localhost:5000/api/hotels").then(res => res.json())
+      fetch(`${API_BASE_URL}/api/restaurants`).then(res => res.json()),
+      fetch(`${API_BASE_URL}/api/hotels`).then(res => res.json())
     ]).then(([r, h]) => {
       setRestaurants(r)
       setHotels(h)

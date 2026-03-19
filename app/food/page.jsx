@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import { API_BASE_URL } from "@/lib/config"
 
 export default function FoodPage() {
   const [talukaRestaurantMap, setTalukaRestaurantMap] = useState({})
@@ -9,8 +10,8 @@ export default function FoodPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:5000/api/places").then(res => res.json()),
-      fetch("http://localhost:5000/api/restaurants").then(res => res.json())
+      fetch(`${API_BASE_URL}/api/places`).then(res => res.json()),
+      fetch(`${API_BASE_URL}/api/restaurants`).then(res => res.json())
     ]).then(([places, restaurants]) => {
       const map = {}
 

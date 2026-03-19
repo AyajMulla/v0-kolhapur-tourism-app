@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import PlaceDetailModal from "./place-detail-modal"
+import { API_BASE_URL } from "@/lib/config"
 
 export default function SearchResults({ searchQuery, selectedTaluka, selectedCategory, onClearSearch }) {
   const [selectedPlace, setSelectedPlace] = useState(null)
@@ -18,9 +19,9 @@ export default function SearchResults({ searchQuery, selectedTaluka, selectedCat
 
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:5000/api/places").then(res => res.json()),
-      fetch("http://localhost:5000/api/restaurants").then(res => res.json()),
-      fetch("http://localhost:5000/api/hotels").then(res => res.json())
+      fetch(`${API_BASE_URL}/api/places`).then(res => res.json()),
+      fetch(`${API_BASE_URL}/api/restaurants`).then(res => res.json()),
+      fetch(`${API_BASE_URL}/api/hotels`).then(res => res.json())
     ]).then(([p, r, h]) => {
       setTouristPlaces(p)
       setRestaurants(r)

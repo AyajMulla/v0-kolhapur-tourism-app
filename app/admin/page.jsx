@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Trash2, Edit, Plus, RefreshCw } from "lucide-react";
+import { API_BASE_URL } from "@/lib/config";
 
 export default function AdminDashboard() {
   const { token } = useAuth();
@@ -29,9 +30,9 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       const [placesRes, hotelsRes, restRes] = await Promise.all([
-        fetch("http://localhost:5000/api/places"),
-        fetch("http://localhost:5000/api/hotels"),
-        fetch("http://localhost:5000/api/restaurants"),
+        fetch(`${API_BASE_URL}/api/places`),
+        fetch(`${API_BASE_URL}/api/hotels`),
+        fetch(`${API_BASE_URL}/api/restaurants`),
       ]);
       const [places, hotels, restaurants] = await Promise.all([
         placesRes.json(),
@@ -61,7 +62,7 @@ export default function AdminDashboard() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    const endpoint = `http://localhost:5000/api/admin/${activeTab}`;
+    const endpoint = `${API_BASE_URL}/api/admin/${activeTab}`;
     const url = editingItem ? `${endpoint}/${editingItem.id}` : endpoint;
     const method = editingItem ? "PUT" : "POST";
 
@@ -87,7 +88,7 @@ export default function AdminDashboard() {
     if (!confirm("Are you sure you want to delete this item?")) return;
     
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/${activeTab}/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/${activeTab}/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });

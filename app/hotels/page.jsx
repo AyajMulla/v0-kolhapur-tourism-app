@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import { API_BASE_URL } from "@/lib/config"
 
 export default function HotelsPage() {
   const [hotels, setHotels] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/hotels")
+    fetch(`${API_BASE_URL}/api/hotels`)
       .then((res) => res.json())
       .then((data) => {
         setHotels(data)

@@ -11,7 +11,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || '*',
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Database Connection
@@ -34,7 +38,8 @@ app.get('/api/places', async (req, res) => {
     const places = await Place.find();
     res.json(places);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch places' });
+    console.error('fetch places error:', err);
+    res.status(500).json({ error: 'Failed to fetch places', details: err.message });
   }
 });
 

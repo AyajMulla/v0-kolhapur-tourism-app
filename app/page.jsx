@@ -9,6 +9,7 @@ import TraditionsSection from "@/components/traditions-section"
 import Footer from "@/components/footer"
 import SearchResults from "@/components/search-results"
 import { kolhapurTalukas } from "@/data/tourism-data"
+import { API_BASE_URL } from "@/lib/config"
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -19,7 +20,7 @@ export default function Home() {
   const [liveTalukas, setLiveTalukas] = useState(kolhapurTalukas)
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/places")
+    fetch(`${API_BASE_URL}/api/places`)
       .then(res => res.json())
       .then(data => {
         if (!Array.isArray(data)) return;
