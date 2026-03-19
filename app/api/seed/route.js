@@ -5,8 +5,6 @@ import Restaurant from '@/lib/models/Restaurant';
 import Hotel from '@/lib/models/Hotel';
 import { touristPlaces, restaurants, hotels } from '@/data/tourism-data';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET() {
   try {
     await connectToDatabase();
