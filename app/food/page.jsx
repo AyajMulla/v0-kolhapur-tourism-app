@@ -1,37 +1,46 @@
 "use client"
 
-import { kolhapurTalukas, kolhapurRestaurants } from "@/data/tourism-data"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 
 export default function FoodPage() {
-  // ---- STEP 1: Build taluka → restaurants grouping ----
-  const talukaRestaurantMap = {}
+  const [talukaRestaurantMap, setTalukaRestaurantMap] = useState({})
+  const [loading, setLoading] = useState(true)
 
-  // initialize each taluka
-  kolhapurTalukas.forEach((taluka) => {
-    talukaRestaurantMap[taluka.name] = []
-  })
+  useEffect(() => {
+    Promise.all([
+      fetch("http://localhost:5000/api/places").then(res => res.json()),
+      fetch("http://localhost:5000/api/restaurants").then(res => res.json())
+    ]).then(([places, restaurants]) => {
+      const map = {}
 
-  // scan each place → assign nearby restaurants to correct taluka
-  kolhapurTalukas.forEach((taluka) => {
-    taluka.places.forEach((place) => {
-      place.nearbyRestaurants?.forEach((resId) => {
-        const restaurant = kolhapurRestaurants.find((r) => r.id === resId)
-        if (restaurant && !talukaRestaurantMap[taluka.name].some((r) => r.id === restaurant.id)) {
-          talukaRestaurantMap[taluka.name].push(restaurant)
-        }
+      places.forEach(place => {
+        if (!map[place.talukaName]) map[place.talukaName] = []
+        
+        place.nearbyRestaurants?.forEach(resId => {
+          const restaurant = restaurants.find(r => r.id === resId)
+          if (restaurant && !map[place.talukaName].some(r => r.id === restaurant.id)) {
+            map[place.talukaName].push(restaurant)
+          }
+        })
       })
+
+      // Unmatched restaurants
+      const matchedResIds = new Set(Object.values(map).flat().map(r => r.id))
+      const unmatched = restaurants.filter(r => !matchedResIds.has(r.id))
+      if (unmatched.length > 0) {
+        map["Other Restaurants"] = unmatched
+      }
+
+      setTalukaRestaurantMap(map)
+      setLoading(false)
+    }).catch(err => {
+      console.error("Error fetching food data", err)
+      setLoading(false)
     })
-  })
+  }, [])
 
-  // restaurants not matched to any taluka
-  const unmatchedRestaurants = kolhapurRestaurants.filter(
-    (res) => !Object.values(talukaRestaurantMap).flat().some((r) => r.id === res.id)
-  )
-
-  if (unmatchedRestaurants.length > 0) {
-    talukaRestaurantMap["Other Restaurants"] = unmatchedRestaurants
-  }
+  if (loading) return <div className="text-center p-10">Loading restaurants...</div>;
 
   // ---- UI START ----
   return (
@@ -55,7 +64,7 @@ export default function FoodPage() {
                   {/* Restaurant Image */}
                   <div className="relative h-48 w-full">
                     <Image
-                      src={rest.image || "/default-food.jpg"}
+                      src={rest.image || "/placeholder.jpg"}
                       alt={rest.name}
                       fill
                       className="object-cover"

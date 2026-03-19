@@ -1,0 +1,63 @@
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+
+const Place = require('./models/Place');
+const Hotel = require('./models/Hotel');
+const Restaurant = require('./models/Restaurant');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Database Connection
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB connected successfully'))
+  .catch((err) => console.log('MongoDB connection error:', err));
+
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/admin', require('./routes/admin'));
+
+app.get('/', (req, res) => {
+  res.send('Kolhapur Tourism API is running...');
+});
+
+// GET Places
+app.get('/api/places', async (req, res) => {
+  try {
+    const places = await Place.find();
+    res.json(places);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch places' });
+  }
+});
+
+// GET Hotels
+app.get('/api/hotels', async (req, res) => {
+  try {
+    const hotels = await Hotel.find();
+    res.json(hotels);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch hotels' });
+  }
+});
+
+// GET Restaurants
+app.get('/api/restaurants', async (req, res) => {
+  try {
+    const restaurants = await Restaurant.find();
+    res.json(restaurants);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch restaurants' });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});

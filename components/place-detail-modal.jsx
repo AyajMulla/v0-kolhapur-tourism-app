@@ -1,13 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X, MapPin, Star, Clock, Camera, Navigation, Phone, Globe, Utensils, Hotel } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { restaurants, hotels } from "@/data/tourism-data"
 import WeatherModal from "./weather-modal"
 import RouteModal from "./route-modal"
 
@@ -15,7 +14,25 @@ export default function PlaceDetailModal({ place, onClose }) {
   const [showWeather, setShowWeather] = useState(false)
   const [showRoute, setShowRoute] = useState(false)
 
-  if (!place) return null
+  const [restaurants, setRestaurants] = useState([])
+  const [hotels, setHotels] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      fetch("http://localhost:5000/api/restaurants").then(res => res.json()),
+      fetch("http://localhost:5000/api/hotels").then(res => res.json())
+    ]).then(([r, h]) => {
+      setRestaurants(r)
+      setHotels(h)
+      setLoading(false)
+    }).catch(err => {
+      console.error("Error fetching detail data", err)
+      setLoading(false)
+    })
+  }, [])
+
+  if (!place || loading) return null
 
   // Get nearby restaurants and hotels
   const nearbyRestaurants = restaurants.filter((restaurant) => place.nearbyRestaurants?.includes(restaurant.id))
@@ -24,7 +41,7 @@ export default function PlaceDetailModal({ place, onClose }) {
   return (
     <>
       <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+        <DialogContent showCloseButton={false} className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
           <DialogHeader className="relative">
             <Button onClick={onClose} variant="ghost" size="icon" className="absolute right-0 top-0 hover:bg-gray-100">
               <X className="h-5 w-5" />
@@ -120,6 +137,9 @@ export default function PlaceDetailModal({ place, onClose }) {
                     <li>• Photography is allowed in most areas</li>
                     <li>• Local guides are available for detailed tours</li>
                     <li>• Respect local customs and traditions</li>
+                    {place.visitorTips && place.visitorTips.map((tip, idx) => (
+                      <li key={`custom-${idx}`}>• {tip}</li>
+                    ))}
                   </ul>
                 </div>
               </TabsContent>

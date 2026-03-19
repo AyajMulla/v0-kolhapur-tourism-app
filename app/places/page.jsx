@@ -1,15 +1,32 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { touristPlaces } from "@/data/tourism-data"
+import { useState, useMemo, useEffect } from "react"
 import Image from "next/image"
 import { MapPin, Search, SlidersHorizontal, Star } from "lucide-react"
+import PlaceDetailModal from "@/components/place-detail-modal"
 
 export default function PlacesPage() {
+  const [touristPlaces, setTouristPlaces] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedPlace, setSelectedPlace] = useState(null)
+
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [selectedTaluka, setSelectedTaluka] = useState("All")
   const [sortBy, setSortBy] = useState("rating-desc")
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/places")
+      .then(res => res.json())
+      .then(data => {
+        setTouristPlaces(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error("Error fetching places", err)
+        setLoading(false)
+      })
+  }, [])
 
   // Generate unique categories and talukas
   const categories = ["All", ...new Set(touristPlaces.map((p) => p.category))]
@@ -22,7 +39,8 @@ export default function PlacesPage() {
     // Search filter
     if (searchQuery.trim() !== "") {
       places = places.filter((p) =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        (p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     }
 
@@ -44,7 +62,9 @@ export default function PlacesPage() {
     }
 
     return places
-  }, [searchQuery, selectedCategory, selectedTaluka, sortBy])
+  }, [searchQuery, selectedCategory, selectedTaluka, sortBy, touristPlaces])
+
+  if (loading) return <div className="text-center p-10">Loading places...</div>;
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -114,11 +134,12 @@ export default function PlacesPage() {
           <div 
             key={place.id}
             className="bg-white rounded-xl shadow-md hover:shadow-2xl transition border overflow-hidden cursor-pointer"
+            onClick={() => setSelectedPlace(place)}
           >
             {/* Image */}
             <div className="relative h-52 w-full">
               <Image
-                src={place.image || "/default-place.jpg"}
+                src={place.image || "/placeholder.jpg"}
                 alt={place.name}
                 fill
                 className="object-cover"
@@ -154,6 +175,10 @@ export default function PlacesPage() {
           </div>
         ))}
       </div>
+
+      {selectedPlace && (
+        <PlaceDetailModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />
+      )}
     </div>
   )
 }

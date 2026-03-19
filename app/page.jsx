@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Header from "@/components/header"
 import HeroSection from "@/components/hero-section"
 import TalukaGrid from "@/components/taluka-grid"
@@ -15,6 +15,25 @@ export default function Home() {
   const [selectedTaluka, setSelectedTaluka] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("")
   const [isSearching, setIsSearching] = useState(false)
+
+  const [liveTalukas, setLiveTalukas] = useState(kolhapurTalukas)
+
+  useEffect(() => {
+    fetch("http://localhost:5000/api/places")
+      .then(res => res.json())
+      .then(data => {
+        if (!Array.isArray(data)) return;
+        const enhancedTalukas = kolhapurTalukas.map(taluka => {
+          const dbPlaces = data.filter(p => p.talukaId === taluka.id || p.talukaName === taluka.name);
+          return {
+            ...taluka,
+            places: dbPlaces.length > 0 ? dbPlaces : taluka.places
+          }
+        });
+        setLiveTalukas(enhancedTalukas);
+      })
+      .catch(err => console.error("Database connection natively asleep:", err));
+  }, [])
 
   const handleSearch = (query, taluka, category) => {
     setSearchQuery(query)
@@ -46,7 +65,7 @@ export default function Home() {
           />
         ) : (
           <>
-            <TalukaGrid talukas={kolhapurTalukas} />
+            <TalukaGrid talukas={liveTalukas} />
             <TraditionsSection />
             <FeaturesSection />
           </>

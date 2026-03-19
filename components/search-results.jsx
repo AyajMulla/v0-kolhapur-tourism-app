@@ -1,16 +1,36 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Search, MapPin, Star, Clock, Phone, Globe, X } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { touristPlaces, restaurants, hotels } from "@/data/tourism-data"
 import PlaceDetailModal from "./place-detail-modal"
 
 export default function SearchResults({ searchQuery, selectedTaluka, selectedCategory, onClearSearch }) {
   const [selectedPlace, setSelectedPlace] = useState(null)
   const [activeTab, setActiveTab] = useState("places")
+
+  const [touristPlaces, setTouristPlaces] = useState([])
+  const [restaurants, setRestaurants] = useState([])
+  const [hotels, setHotels] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      fetch("http://localhost:5000/api/places").then(res => res.json()),
+      fetch("http://localhost:5000/api/restaurants").then(res => res.json()),
+      fetch("http://localhost:5000/api/hotels").then(res => res.json())
+    ]).then(([p, r, h]) => {
+      setTouristPlaces(p)
+      setRestaurants(r)
+      setHotels(h)
+      setLoading(false)
+    }).catch(err => {
+      console.error("Error fetching search data", err)
+      setLoading(false)
+    })
+  }, [])
 
   // Filter function with null checks
   const filterResults = (items, type) => {
@@ -30,7 +50,7 @@ export default function SearchResults({ searchQuery, selectedTaluka, selectedCat
         selectedTaluka === "all" ||
         !selectedTaluka ||
         (type === "places" && item.talukaId === selectedTaluka) ||
-        (type !== "places" && true) // For restaurants and hotels, don't filter by taluka for now
+        (type !== "places" && (item.address && item.address.toLowerCase().includes(selectedTaluka.toLowerCase())))
 
       const matchesCategory =
         selectedCategory === "all" || !selectedCategory || (item.category && item.category === selectedCategory)

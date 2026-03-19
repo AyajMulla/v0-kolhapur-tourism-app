@@ -4,9 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, MapPin, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-context";
+import LoginModal from "@/components/login-modal";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const { user, logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -56,9 +60,9 @@ export default function Header() {
               scroll={false}
               onClick={(e) => {
                 // If already on home, prevent full reload
-                if (window.location.pathname === "/") {
+                if (globalThis.location.pathname === "/") {
                   e.preventDefault();
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  globalThis.scrollTo({ top: 0, behavior: "smooth" });
                 }
               }}
             >
@@ -88,9 +92,30 @@ export default function Header() {
             >
               Hotels
             </Link>
-            {/* <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white">
-              Plan Trip
-            </Button> */}
+            {user ? (
+              <div className="flex items-center space-x-4">
+                {user.role === "admin" && (
+                  <Link href="/admin" className="text-orange-600 font-bold hover:text-red-700 transition">
+                    Admin Panel
+                  </Link>
+                )}
+                <span className="text-gray-700 font-medium">Hi, {user.name}</span>
+                <Button 
+                  onClick={logout}
+                  variant="outline"
+                  className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                onClick={() => setShowLogin(true)}
+                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white"
+              >
+                Sign In
+              </Button>
+            )}
           </nav>
 
           {/* Mobile menu button */}
@@ -119,36 +144,63 @@ export default function Header() {
                 Home
               </Link>
               <Link
-                href="#places"
+                href="/places"
                 className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
               >
                 Places
               </Link>
               <Link
-                href="#culture"
+                href="/culture"
                 className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
               >
                 Culture
               </Link>
               <Link
-                href="#food"
+                href="/food"
                 className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
               >
                 Food
               </Link>
               <Link
-                href="#hotels"
+                href="/hotels"
                 className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
               >
                 Hotels
               </Link>
-              <Button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white w-full">
-                Plan Trip
-              </Button>
+              {user ? (
+                <>
+                  <div className="py-2 text-center text-gray-700 font-medium border-y border-orange-100 flex flex-col space-y-2">
+                    <span>Logged in as {user.name}</span>
+                    {user.role === "admin" && (
+                      <Link href="/admin" onClick={() => setIsMenuOpen(false)} className="text-orange-600 font-bold hover:underline">
+                        Go to Admin Panel
+                      </Link>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={logout}
+                    variant="outline"
+                    className="border-orange-500 text-orange-600 w-full hover:bg-orange-50"
+                  >
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  onClick={() => {
+                    setShowLogin(true);
+                    setIsMenuOpen(false);
+                  }}
+                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white w-full"
+                >
+                  Sign In
+                </Button>
+              )}
             </nav>
           </div>
         )}
       </div>
+      <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
     </header>
   );
 }

@@ -22,11 +22,14 @@ export const metadata = {
   
 }
 
+import { AuthProvider } from "@/lib/auth-context"
+
 export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
       className={`${playfairDisplay.variable} ${notoSansDevanagari.variable} antialiased`}
+      suppressHydrationWarning
     >
       <body>
         <ThemeProvider
@@ -35,8 +38,10 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

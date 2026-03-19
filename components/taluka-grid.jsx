@@ -1,13 +1,19 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Star, Clock, Users } from "lucide-react"
+import { MapPin, Star, Clock, Users, ChevronDown, ChevronUp } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import PlaceDetailModal from "./place-detail-modal"
 
 export default function TalukaGrid({ talukas }) {
   const [selectedPlace, setSelectedPlace] = useState(null)
+  const [expandedTalukas, setExpandedTalukas] = useState({})
+
+  const toggleExpand = (talukaId) => {
+    setExpandedTalukas(prev => ({ ...prev, [talukaId]: !prev[talukaId] }))
+  }
 
   const handlePlaceClick = (place, talukaName) => {
     setSelectedPlace({
@@ -36,7 +42,7 @@ export default function TalukaGrid({ talukas }) {
 
           {/* Places Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {taluka.places.map((place) => (
+            {(expandedTalukas[taluka.id] ? taluka.places : taluka.places.slice(0, 3)).map((place) => (
               <Card
                 key={place.id}
                 className="group hover:shadow-2xl transition-all duration-500 cursor-pointer border-0 bg-white/90 backdrop-blur-sm hover:-translate-y-2 overflow-hidden luxury-card"
@@ -89,6 +95,22 @@ export default function TalukaGrid({ talukas }) {
               </Card>
             ))}
           </div>
+          
+          {taluka.places.length > 3 && (
+            <div className="flex justify-center mt-6">
+              <Button 
+                variant="outline" 
+                className="border-orange-200 text-orange-600 hover:bg-orange-50 bg-white"
+                onClick={() => toggleExpand(taluka.id)}
+              >
+                {expandedTalukas[taluka.id] ? (
+                  <><ChevronUp className="w-4 h-4 mr-2" /> Show Less</>
+                ) : (
+                  <><ChevronDown className="w-4 h-4 mr-2" /> Show {taluka.places.length - 3} More Options</>
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       ))}
 
