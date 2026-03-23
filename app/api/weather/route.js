@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const city = searchParams.get("city") || "Kolhapur";
-  const API_KEY = "3dc401700bebc92003f571c53a985995";
+  const API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
 
   try {
     let res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`);
