@@ -43,7 +43,7 @@ export default function LoginModal({ isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white border-0 shadow-2xl p-0 overflow-hidden">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-md bg-white border-0 shadow-2xl p-0 overflow-hidden">
         <div className="flex flex-col md:flex-row">
           
           {/* Left Side Branding */}

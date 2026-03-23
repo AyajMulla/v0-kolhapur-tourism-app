@@ -31,7 +31,7 @@ export default function PlacesPage() {
 
   // Generate unique categories and talukas
   const categories = ["All", ...new Set(touristPlaces.map((p) => p.category))]
-  const talukas = ["All", ...new Set(touristPlaces.map((p) => p.talukaName))]
+  const talukas = ["All", ...new Set(touristPlaces.map((p) => p.talukaName || p.talukaId || "Kolhapur"))]
 
   // Filtering + sorting logic
   const filteredPlaces = useMemo(() => {
@@ -52,7 +52,10 @@ export default function PlacesPage() {
 
     // Taluka filter
     if (selectedTaluka !== "All") {
-      places = places.filter((p) => p.talukaName === selectedTaluka)
+      places = places.filter((p) => {
+        const tName = p.talukaName || p.talukaId || "Kolhapur";
+        return tName === selectedTaluka;
+      })
     }
 
     // Sorting
@@ -153,7 +156,7 @@ export default function PlacesPage() {
 
               <div className="flex items-center text-gray-500 text-sm mt-1">
                 <MapPin className="h-4 w-4 mr-1 text-orange-600" />
-                {place.talukaName}
+                {place.talukaName || place.talukaId || "Kolhapur"}
               </div>
 
               <p className="mt-2 text-gray-700 text-sm">

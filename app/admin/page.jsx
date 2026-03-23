@@ -243,9 +243,15 @@ export default function AdminDashboard() {
                     placeholder="e.g. Bring water, Wear shoes..." 
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Taluka ID</Label>
-                  <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karvir" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Taluka ID</Label>
+                    <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Taluka Name</Label>
+                    <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
+                  </div>
                 </div>
               </>
             ) : (

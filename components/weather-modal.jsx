@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { X, Cloud, Sun, CloudRain, Wind, Droplets, Thermometer } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getWeatherData } from "@/lib/weather"
@@ -14,7 +14,9 @@ export default function WeatherModal({ place, onClose }) {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const weatherData = await getWeatherData(place.name)
+        // Use the region/taluka name if available to avoid 404s on specific monuments
+        const regionQuery = (place.talukaName || place.name).replace(" City", "")
+        const weatherData = await getWeatherData(regionQuery)
         setWeather(weatherData)
       } catch (error) {
         console.error("Error fetching weather:", error)
@@ -24,26 +26,35 @@ export default function WeatherModal({ place, onClose }) {
     }
 
     fetchWeather()
-  }, [place.name])
+  }, [place.name, place.talukaName])
 
   const getWeatherIcon = (condition) => {
     switch (condition?.toLowerCase()) {
+      case "clear":
       case "sunny":
         return <Sun className="h-12 w-12 text-yellow-500" />
+      case "clouds":
+      case "cloudy":
       case "partly cloudy":
         return <Cloud className="h-12 w-12 text-gray-500" />
-      case "cloudy":
-        return <Cloud className="h-12 w-12 text-gray-600" />
+      case "rain":
+      case "drizzle":
       case "light rain":
         return <CloudRain className="h-12 w-12 text-blue-500" />
+      case "thunderstorm":
+        return <CloudRain className="h-12 w-12 text-purple-600" />
+      case "snow":
+        return <Cloud className="h-12 w-12 text-blue-200" />
       default:
-        return <Sun className="h-12 w-12 text-yellow-500" />
+        // Mist, Smoke, Haze, Dust, Fog, etc.
+        return <Wind className="h-12 w-12 text-gray-400" />
     }
   }
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+      <DialogContent aria-describedby={undefined} className="max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+        <DialogDescription className="sr-only">Live weather details and travel recommendations.</DialogDescription>
         <DialogHeader className="relative">
           <Button onClick={onClose} variant="ghost" size="icon" className="absolute right-0 top-0 hover:bg-gray-100">
             <X className="h-5 w-5" />

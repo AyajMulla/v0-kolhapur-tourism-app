@@ -42,7 +42,7 @@ export default function PlaceDetailModal({ place, onClose }) {
   return (
     <>
       <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent showCloseButton={false} className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+        <DialogContent aria-describedby={undefined} showCloseButton={false} className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
           <DialogHeader className="relative">
             <Button onClick={onClose} variant="ghost" size="icon" className="absolute right-0 top-0 hover:bg-gray-100">
               <X className="h-5 w-5" />
