@@ -2,40 +2,97 @@
 
 import { useState, useEffect } from "react"
 import { X, Navigation, MapPin, Clock, Car, Route } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { calculateRoute } from "@/lib/routes"
+import { useToast } from "@/hooks/use-toast"
+import MapView from "./map-view"
 
 export default function RouteModal({ destination, onClose }) {
   const [routes, setRoutes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [isMountedState, setIsMountedState] = useState(false) // Renamed to avoid conflict with useEffect's `isMounted`
+  const { toast } = useToast()
+  const [startName, setStartName] = useState("Kolhapur City")
   const [selectedRoute, setSelectedRoute] = useState(null)
+  const [showMap, setShowMap] = useState(false)
 
   useEffect(() => {
+    let isMounted = true;
+    setIsMountedState(true); // Set the state variable
     const fetchRoutes = async () => {
+      let userCoords = null
+      let destCoords = null
+
+      // Prefer explicit coordinates from the database, fallback to Geocoding
+      if (destination.coordinates && destination.coordinates.length === 2) {
+        destCoords = destination.coordinates
+      } else {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination.name + ", Maharashtra, India")}`)
+          const data = await res.json()
+          if (data && data.length > 0) {
+            destCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)]
+          }
+        } catch(err) { console.error("Geocoding failed", err) }
+      }
+
+      // Get user location
+      if (navigator.geolocation) {
+        try {
+          userCoords = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+              pos => resolve([pos.coords.latitude, pos.coords.longitude]),
+              err => reject(err),
+              { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+            )
+          })
+          if (isMounted) setStartName("Your Live Location")
+        } catch(err) {
+           console.log("Could not get user location", err)
+           toast({
+             title: "Location Access Denied",
+             description: "Using Kolhapur City center as default starting point.",
+             variant: "default",
+           })
+           userCoords = [16.7050, 74.2433] // Kolhapur city default
+        }
+      } else {
+        toast({
+          title: "Geolocation Unsupported",
+          description: "Your browser does not support Geolocation.",
+          variant: "destructive",
+        })
+        userCoords = [16.7050, 74.2433]
+      }
+
+      if (!isMounted) return;
+
       try {
-        const routeData = await calculateRoute("Kolhapur City", destination.name)
-        setRoutes(routeData)
-        setSelectedRoute(routeData[0])
+        const routeData = await calculateRoute(startName, destination.name, userCoords, destCoords)
+        if (isMounted) {
+          setRoutes(routeData)
+          setSelectedRoute(routeData[0])
+        }
       } catch (error) {
         console.error("Error fetching routes:", error)
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     fetchRoutes()
+    return () => { isMounted = false; }
   }, [destination.name])
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent aria-describedby={undefined} className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
-        <DialogHeader className="relative">
-          <Button onClick={onClose} variant="ghost" size="icon" className="absolute right-0 top-0 hover:bg-gray-100">
-            <X className="h-5 w-5" />
-          </Button>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+        <DialogDescription className="sr-only">Route details</DialogDescription>
+        <DialogHeader>
           <DialogTitle className="text-xl font-bold text-gray-800 pr-10">Routes to {destination.name}</DialogTitle>
         </DialogHeader>
 
@@ -47,7 +104,7 @@ export default function RouteModal({ destination, onClose }) {
                 <div className="flex items-center">
                   <MapPin className="h-5 w-5 text-blue-600 mr-2" />
                   <div>
-                    <div className="font-medium text-gray-800">From: Kolhapur City</div>
+                    <div className="font-medium text-gray-800">From: {startName}</div>
                     <div className="font-medium text-gray-800">To: {destination.name}</div>
                   </div>
                 </div>
@@ -139,11 +196,19 @@ export default function RouteModal({ destination, onClose }) {
                 <Button
                   variant="outline"
                   className="flex-1 border-orange-200 text-orange-600 hover:bg-orange-50 bg-transparent"
+                  onClick={() => setShowMap(!showMap)}
                 >
                   <MapPin className="h-4 w-4 mr-2" />
-                  View on Map
+                  {showMap ? "Hide Map" : "View on Map"}
                 </Button>
               </div>
+
+              {/* Dynamic Map View */}
+              {showMap && (
+                <div className="mt-4 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                  <MapView name={destination.name} showRoute={true} coordinates={destination.coordinates} />
+                </div>
+              )}
 
               {/* Travel Tips */}
               <Card className="border-green-200 bg-green-50">

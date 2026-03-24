@@ -6,9 +6,8 @@ import { Search, MapPin, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { kolhapurTalukas } from "@/data/tourism-data"
 
-export default function HeroSection({ onSearch }) {
+export default function HeroSection({ onSearch, talukas = [] }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedTaluka, setSelectedTaluka] = useState("all")
   const [selectedCategory, setSelectedCategory] = useState("all")
@@ -96,7 +95,7 @@ export default function HeroSection({ onSearch }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Talukas</SelectItem>
-                  {kolhapurTalukas.map((taluka) => (
+                  {talukas.map((taluka) => (
                     <SelectItem key={taluka.id} value={taluka.id}>
                       {taluka.name}
                     </SelectItem>

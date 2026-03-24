@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useEffect } from "react"
 import Image from "next/image"
-import { MapPin, Search, SlidersHorizontal, Star } from "lucide-react"
+import Link from "next/link"
+import { MapPin, Search, SlidersHorizontal, Star, ArrowLeft } from "lucide-react"
 import PlaceDetailModal from "@/components/place-detail-modal"
 import { API_BASE_URL } from "@/lib/config"
 
@@ -72,6 +73,10 @@ export default function PlacesPage() {
 
   return (
     <div className="container mx-auto px-4 py-10">
+      <Link href="/" className="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium mb-6 transition-colors group">
+        <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+        Back to Explore
+      </Link>
 
       {/* Page Title */}
       <h1 className="text-4xl font-bold text-orange-600 mb-6">Explore Tourist Places</h1>

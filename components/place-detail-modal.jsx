@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { X, MapPin, Star, Clock, Camera, Navigation, Phone, Globe, Utensils, Hotel } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import WeatherModal from "./weather-modal"
 import RouteModal from "./route-modal"
+import MapView from "./map-view"
 import { API_BASE_URL } from "@/lib/config"
 
 export default function PlaceDetailModal({ place, onClose }) {
@@ -42,12 +43,12 @@ export default function PlaceDetailModal({ place, onClose }) {
   return (
     <>
       <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent aria-describedby={undefined} showCloseButton={false} className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
-          <DialogHeader className="relative">
-            <Button onClick={onClose} variant="ghost" size="icon" className="absolute right-0 top-0 hover:bg-gray-100">
-              <X className="h-5 w-5" />
-            </Button>
-            <DialogTitle className="text-2xl font-bold text-gray-800 pr-10">{place.name}</DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+          <DialogHeader className="pr-10">
+            <DialogTitle className="text-2xl font-bold text-gray-800">{place.name}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Details and features about {place.name}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
@@ -76,7 +77,7 @@ export default function PlaceDetailModal({ place, onClose }) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center bg-orange-50 rounded-lg p-3">
                 <Clock className="h-6 w-6 text-orange-600 mx-auto mb-1" />
-                <div className="text-sm font-medium text-gray-800">Duration</div>
+                <div className="text-sm font-medium text-gray-800">Travel Time</div>
                 <div className="text-xs text-gray-600">{place.visitDuration}</div>
               </div>
               <div className="text-center bg-blue-50 rounded-lg p-3">
@@ -114,10 +115,11 @@ export default function PlaceDetailModal({ place, onClose }) {
 
             {/* Tabs Content */}
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
                 <TabsTrigger value="hotels">Hotels</TabsTrigger>
+                <TabsTrigger value="map">Map</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4">
@@ -252,6 +254,13 @@ export default function PlaceDetailModal({ place, onClose }) {
                       <p>No nearby hotels data available</p>
                     </div>
                   )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="map" className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Location Map</h3>
+                  <MapView name={place.name} />
                 </div>
               </TabsContent>
             </Tabs>

@@ -6,11 +6,22 @@ import { Menu, X, MapPin, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import LoginModal from "@/components/login-modal";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const { user, logout } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+      variant: "default",
+    });
+  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -101,7 +112,7 @@ export default function Header() {
                 )}
                 <span className="text-gray-700 font-medium">Hi, {user.name}</span>
                 <Button 
-                  onClick={logout}
+                  onClick={handleLogout}
                   variant="outline"
                   className="border-orange-500 text-orange-600 hover:bg-orange-50"
                 >
@@ -178,7 +189,7 @@ export default function Header() {
                     )}
                   </div>
                   <Button 
-                    onClick={logout}
+                    onClick={handleLogout}
                     variant="outline"
                     className="border-orange-500 text-orange-600 w-full hover:bg-orange-50"
                   >

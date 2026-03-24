@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/lib/auth-context"
+import { useToast } from "@/hooks/use-toast"
 
 export default function LoginModal({ isOpen, onClose }) {
   const [isLogin, setIsLogin] = useState(true)
@@ -14,6 +15,7 @@ export default function LoginModal({ isOpen, onClose }) {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const { login, register } = useAuth()
+  const { toast } = useToast()
 
   if (!isOpen) return null
 
@@ -30,8 +32,18 @@ export default function LoginModal({ isOpen, onClose }) {
     try {
       if (isLogin) {
         await login(formData.email, formData.password)
+        toast({
+          title: "Welcome Back!",
+          description: "You have successfully logged in.",
+          variant: "default",
+        })
       } else {
         await register(formData.name, formData.email, formData.password)
+        toast({
+          title: "Account Created!",
+          description: "Welcome to Kolhapur Tourism.",
+          variant: "default",
+        })
       }
       onClose() // Successfully logged in/registered, close modal
     } catch (err) {
@@ -43,7 +55,8 @@ export default function LoginModal({ isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent aria-describedby={undefined} className="sm:max-w-md bg-white border-0 shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-md bg-white border-0 shadow-2xl p-0 overflow-hidden">
+        <DialogDescription className="sr-only">Login authentication modal</DialogDescription>
         <div className="flex flex-col md:flex-row">
           
           {/* Left Side Branding */}
@@ -59,12 +72,6 @@ export default function LoginModal({ isOpen, onClose }) {
 
           {/* Right Side Form */}
           <div className="w-full md:w-3/5 p-8 relative">
-            <div className="absolute right-4 top-4">
-              <Button onClick={onClose} variant="ghost" size="icon" className="text-gray-400 hover:text-gray-800">
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-
             <DialogHeader className="mb-6">
               <DialogTitle className="text-2xl font-bold text-gray-800">
                 {isLogin ? "Sign In" : "Create Account"}

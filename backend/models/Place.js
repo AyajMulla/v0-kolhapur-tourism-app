@@ -9,6 +9,7 @@ const PlaceSchema = new mongoose.Schema({
   rating: { type: Number, required: true },
   visitDuration: { type: String },
   bestTimeToVisit: { type: String },
+  coordinates: { type: [Number] },
   nearbyRestaurants: [{ type: String }],
   nearbyHotels: [{ type: String }],
   talukaName: { type: String },

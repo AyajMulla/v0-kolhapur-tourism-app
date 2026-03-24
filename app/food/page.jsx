@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { API_BASE_URL } from "@/lib/config"
 
 export default function FoodPage() {
@@ -46,6 +48,10 @@ export default function FoodPage() {
   // ---- UI START ----
   return (
     <div className="container mx-auto px-4 py-10">
+      <Link href="/" className="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium mb-6 transition-colors group">
+        <ArrowLeft className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+        Back to Home
+      </Link>
       <h1 className="text-4xl font-bold text-orange-600 mb-10">Restaurants by Taluka</h1>
 
       {Object.keys(talukaRestaurantMap).map((talukaName) => {

@@ -6,6 +6,7 @@ const cors = require('cors');
 const Place = require('./models/Place');
 const Hotel = require('./models/Hotel');
 const Restaurant = require('./models/Restaurant');
+const Taluka = require('./models/Taluka');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,6 +31,16 @@ app.use('/api/admin', require('./routes/admin'));
 
 app.get('/', (req, res) => {
   res.send('Kolhapur Tourism API is running...');
+});
+
+// GET Talukas
+app.get('/api/talukas', async (req, res) => {
+  try {
+    const talukas = await Taluka.find();
+    res.json(talukas);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch talukas' });
+  }
 });
 
 // GET Places

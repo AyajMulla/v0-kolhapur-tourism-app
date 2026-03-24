@@ -6,10 +6,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getWeatherData } from "@/lib/weather"
+import { useToast } from "@/hooks/use-toast"
 
 export default function WeatherModal({ place, onClose }) {
   const [weather, setWeather] = useState(null)
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -20,6 +22,11 @@ export default function WeatherModal({ place, onClose }) {
         setWeather(weatherData)
       } catch (error) {
         console.error("Error fetching weather:", error)
+        toast({
+          title: "Weather Unavailable",
+          description: "Could not fetch current weather data for this location.",
+          variant: "destructive",
+        })
       } finally {
         setLoading(false)
       }
@@ -53,12 +60,9 @@ export default function WeatherModal({ place, onClose }) {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent aria-describedby={undefined} className="max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+      <DialogContent className="max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
         <DialogDescription className="sr-only">Live weather details and travel recommendations.</DialogDescription>
-        <DialogHeader className="relative">
-          <Button onClick={onClose} variant="ghost" size="icon" className="absolute right-0 top-0 hover:bg-gray-100">
-            <X className="h-5 w-5" />
-          </Button>
+        <DialogHeader>
           <DialogTitle className="text-xl font-bold text-gray-800 pr-10">Weather at {place.name}</DialogTitle>
         </DialogHeader>
 
