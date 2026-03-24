@@ -14,6 +14,7 @@ const PlaceSchema = new mongoose.Schema({
   nearbyHotels: [{ type: String }],
   talukaName: { type: String },
   talukaId: { type: String },
+  images: [{ type: String }],
   visitorTips: [{ type: String }]
 }, {
   timestamps: true,

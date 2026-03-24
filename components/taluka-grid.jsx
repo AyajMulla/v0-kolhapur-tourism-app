@@ -52,6 +52,7 @@ export default function TalukaGrid({ talukas }) {
                   <img
                     src={place.image || "/placeholder.svg"}
                     alt={place.name}
+                    fetchpriority={taluka.id === "karveer" && place.id === "mahalaxmi-temple" ? "high" : undefined}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />

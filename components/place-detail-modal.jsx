@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, MapPin, Star, Clock, Camera, Navigation, Phone, Globe, Utensils, Hotel } from "lucide-react"
+import { X, MapPin, Star, Clock, Camera, Navigation, Phone, Globe, Utensils, Hotel, Cloud } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -97,19 +97,35 @@ export default function PlaceDetailModal({ place, onClose }) {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
-              <Button onClick={() => setShowWeather(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Navigation className="h-4 w-4 mr-2" />
-                Check Weather
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                onClick={() => setShowWeather(true)}
+                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-medium py-6 rounded-xl transition-all duration-300 shadow-lg shadow-orange-900/20 group h-auto"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/10 rounded-lg group-hover:scale-110 transition-transform">
+                    <Cloud className="h-5 w-5" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-xs opacity-80 font-normal">Current Conditions</div>
+                    <div className="text-sm font-bold">Check Weather</div>
+                  </div>
+                </div>
               </Button>
-              <Button onClick={() => setShowRoute(true)} className="bg-green-600 hover:bg-green-700 text-white">
-                <MapPin className="h-4 w-4 mr-2" />
-                Get Directions
-              </Button>
-              <Button variant="outline" className="border-orange-200 text-orange-600 hover:bg-orange-50 bg-transparent">
-                <Camera className="h-4 w-4 mr-2" />
-                View Gallery
+
+              <Button
+                onClick={() => setShowRoute(true)}
+                className="flex-1 bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 font-medium py-6 rounded-xl transition-all duration-300 shadow-md group h-auto"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-50 rounded-lg group-hover:scale-110 transition-transform">
+                    <Navigation className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-xs text-gray-500 font-normal">Travel Guide</div>
+                    <div className="text-sm font-bold">Get Directions</div>
+                  </div>
+                </div>
               </Button>
             </div>
 
