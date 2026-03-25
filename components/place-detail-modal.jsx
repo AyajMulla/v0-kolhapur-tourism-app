@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, MapPin, Star, Clock, Camera, Navigation, Phone, Globe, Utensils, Hotel, Cloud } from "lucide-react"
+import { X, MapPin, Star, Phone, Globe, Clock, Utensils, Hotel, Navigation, Cloud, Heart, Camera } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import WeatherModal from "./weather-modal"
 import RouteModal from "./route-modal"
 import MapView from "./map-view"
+import LoginModal from "./login-modal"
+import { useAuth } from "@/lib/auth-context"
+import { useToast } from "@/hooks/use-toast"
 import { API_BASE_URL } from "@/lib/config"
 
 export default function PlaceDetailModal({ place, onClose }) {
@@ -19,6 +22,33 @@ export default function PlaceDetailModal({ place, onClose }) {
   const [restaurants, setRestaurants] = useState([])
   const [hotels, setHotels] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  
+  const { user, toggleFavorite } = useAuth()
+  const { toast } = useToast()
+
+  const handleToggleFavorite = async (e, placeId) => {
+    e.stopPropagation()
+    if (!user) {
+      setIsLoginModalOpen(true)
+      return
+    }
+    
+    try {
+      const isFavInitially = user.favorites?.includes(placeId);
+      await toggleFavorite(placeId);
+      toast({
+        title: isFavInitially ? "Removed from Wishlist" : "Added to Wishlist",
+        description: isFavInitially ? "Place removed from your planned trip." : "Place added to your planned trip!",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive"
+      })
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -69,6 +99,18 @@ export default function PlaceDetailModal({ place, onClose }) {
                     <Star className="h-4 w-4 text-yellow-400 mr-1" />
                     <span className="text-white font-medium">{place.rating}</span>
                   </div>
+                </div>
+                <div className="absolute top-4 right-4 z-20">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 transition-colors ${
+                      user?.favorites?.includes(place.id) ? "text-red-500 fill-red-500" : "text-white"
+                    }`}
+                    onClick={(e) => handleToggleFavorite(e, place.id)}
+                  >
+                    <Heart className="h-6 w-6" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -289,6 +331,8 @@ export default function PlaceDetailModal({ place, onClose }) {
 
       {/* Route Modal */}
       {showRoute && <RouteModal destination={place} onClose={() => setShowRoute(false)} />}
+      
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </>
   )
 }

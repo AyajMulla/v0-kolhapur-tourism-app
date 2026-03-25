@@ -864,6 +864,7 @@ export const kolhapurHotels = [
   {
     id: "sayaji-kolhapur",
     name: "Sayaji Hotel Kolhapur",
+    image: "/placeholder.jpg",
     category: "4 Star",
     rating: 4.5,
     priceRange: "₹4000-8000",
@@ -875,6 +876,7 @@ export const kolhapurHotels = [
   {
     id: "pavilion-hotel",
     name: "Hotel Pavilion",
+    image: "/placeholder.jpg",
     category: "3 Star",
     rating: 4.2,
     priceRange: "₹2500-4500",

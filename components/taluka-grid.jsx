@@ -1,15 +1,44 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Star, Clock, Users, ChevronDown, ChevronUp } from "lucide-react"
+import { MapPin, Star, Clock, Users, ChevronDown, ChevronUp, Heart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import PlaceDetailModal from "./place-detail-modal"
+import { useAuth } from "@/lib/auth-context"
+import LoginModal from "./login-modal"
+import { useToast } from "@/hooks/use-toast"
 
 export default function TalukaGrid({ talukas }) {
   const [selectedPlace, setSelectedPlace] = useState(null)
   const [expandedTalukas, setExpandedTalukas] = useState({})
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const { user, toggleFavorite } = useAuth()
+  const { toast } = useToast()
+
+  const handleToggleFavorite = async (e, placeId) => {
+    e.stopPropagation()
+    if (!user) {
+      setIsLoginModalOpen(true)
+      return
+    }
+    
+    try {
+      const isFavInitially = user.favorites?.includes(placeId);
+      await toggleFavorite(placeId);
+      toast({
+        title: isFavInitially ? "Removed from Wishlist" : "Added to Wishlist",
+        description: isFavInitially ? "Place removed from your planned trip." : "Place added to your planned trip!",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive"
+      })
+    }
+  }
 
   const toggleExpand = (talukaId) => {
     setExpandedTalukas(prev => ({ ...prev, [talukaId]: !prev[talukaId] }))
@@ -24,6 +53,7 @@ export default function TalukaGrid({ talukas }) {
 
   return (
     <div className="space-y-12">
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
       <div className="text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Explore Kolhapur by Region</h2>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
@@ -52,12 +82,24 @@ export default function TalukaGrid({ talukas }) {
                   <img
                     src={place.image || "/placeholder.svg"}
                     alt={place.name}
-                    fetchpriority={taluka.id === "karveer" && place.id === "mahalaxmi-temple" ? "high" : undefined}
+                    fetchPriority={taluka.id === "karveer" && place.id === "mahalaxmi-temple" ? "high" : undefined}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute top-4 left-4">
                     <Badge className="bg-orange-500/90 text-white font-medium">{place.category}</Badge>
+                  </div>
+                  <div className="absolute top-4 right-4 z-10">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`rounded-full bg-white/20 backdrop-blur-md hover:bg-white/40 transition-colors ${
+                        user?.favorites?.includes(place.id) ? "text-red-500 fill-red-500" : "text-white"
+                      }`}
+                      onClick={(e) => handleToggleFavorite(e, place.id)}
+                    >
+                      <Heart className="h-5 w-5" />
+                    </Button>
                   </div>
                   <div className="absolute bottom-4 left-4 right-4">
                     <h4 className="text-white font-bold text-xl mb-2 text-balance">{place.name}</h4>

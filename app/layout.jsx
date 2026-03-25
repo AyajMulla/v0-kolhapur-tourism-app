@@ -2,6 +2,7 @@ import "./globals.css"
 import { Playfair_Display, Noto_Sans_Devanagari } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import AIAssistant from "@/components/ai-assistant"
 
 // Only Google fonts now
 const playfairDisplay = Playfair_Display({
@@ -19,7 +20,9 @@ export const metadata = {
   title: "Kolhapur Tourism - Discover the Cultural Capital of Maharashtra",
   description:
     "Explore the rich heritage, temples, forts, and natural beauty of Kolhapur. Your complete guide to tourist places, food, and accommodation.",
-  
+  icons: {
+    icon: "/favicon.svg",
+  },
 }
 
 import { AuthProvider } from "@/lib/auth-context"
@@ -40,6 +43,7 @@ export default function RootLayout({ children }) {
         >
           <AuthProvider>
             {children}
+            <AIAssistant />
             <Toaster />
           </AuthProvider>
         </ThemeProvider>

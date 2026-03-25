@@ -47,7 +47,7 @@ export default function RouteModal({ destination, onClose }) {
             navigator.geolocation.getCurrentPosition(
               pos => resolve([pos.coords.latitude, pos.coords.longitude]),
               err => reject(err),
-              { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+              { enableHighAccuracy: false, timeout: 30000, maximumAge: 0 }
             )
           })
           if (isMounted) setStartName("Your Live Location")

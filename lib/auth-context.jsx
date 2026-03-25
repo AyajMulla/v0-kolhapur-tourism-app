@@ -80,8 +80,29 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const toggleFavorite = async (placeId) => {
+    if (!token) throw new Error("Please login to save favorites");
+    
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/user/favorites/${placeId}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (res.ok) {
+        const newFavorites = await res.json();
+        setUser(prev => ({ ...prev, favorites: newFavorites }));
+        return newFavorites;
+      }
+    } catch (err) {
+      console.error("Toggle favorite failed:", err);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, toggleFavorite }}>
       {children}
     </AuthContext.Provider>
   );

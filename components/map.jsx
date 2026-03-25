@@ -108,7 +108,7 @@ export default function Map({ position, name, zoom, showRoute, destinationCoords
               L.marker(targetCoords).addTo(map).bindPopup((name || "Destination") + " (Location Access Denied)").openPopup()
             }
           },
-          { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+          { enableHighAccuracy: false, timeout: 30000, maximumAge: 0 }
         )
       } else {
         L.marker(targetCoords).addTo(map).bindPopup((name || "Destination") + " (Location Not Supported)").openPopup()

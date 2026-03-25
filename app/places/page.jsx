@@ -3,8 +3,12 @@
 import { useState, useMemo, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { MapPin, Search, SlidersHorizontal, Star, ArrowLeft } from "lucide-react"
+import { MapPin, Search, SlidersHorizontal, Star, ArrowLeft, Heart } from "lucide-react"
 import PlaceDetailModal from "@/components/place-detail-modal"
+import LoginModal from "@/components/login-modal"
+import { useAuth } from "@/lib/auth-context"
+import { useToast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/button"
 import { API_BASE_URL } from "@/lib/config"
 
 export default function PlacesPage() {
@@ -16,6 +20,32 @@ export default function PlacesPage() {
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [selectedTaluka, setSelectedTaluka] = useState("All")
   const [sortBy, setSortBy] = useState("rating-desc")
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const { user, toggleFavorite } = useAuth()
+  const { toast } = useToast()
+
+  const handleToggleFavorite = async (e, placeId) => {
+    e.stopPropagation()
+    if (!user) {
+      setIsLoginModalOpen(true)
+      return
+    }
+    
+    try {
+      const isFavInitially = user.favorites?.includes(placeId);
+      await toggleFavorite(placeId);
+      toast({
+        title: isFavInitially ? "Removed from Wishlist" : "Added to Wishlist",
+        description: isFavInitially ? "Place removed from your planned trip." : "Place added to your planned trip!",
+      })
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.message,
+        variant: "destructive"
+      })
+    }
+  }
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/places`)
@@ -139,7 +169,7 @@ export default function PlacesPage() {
 
       {/* Places Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredPlaces.map((place) => (
+        {Array.isArray(filteredPlaces) && filteredPlaces.map((place) => (
           <div 
             key={place.id}
             className="bg-white rounded-xl shadow-md hover:shadow-2xl transition border overflow-hidden cursor-pointer"
@@ -153,6 +183,18 @@ export default function PlacesPage() {
                 fill
                 className="object-cover"
               />
+              <div className="absolute top-4 right-4 z-10">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`rounded-full bg-white/40 backdrop-blur-md hover:bg-white/60 transition-colors ${
+                    user?.favorites?.includes(place.id) ? "text-red-500 fill-red-500" : "text-gray-600"
+                  }`}
+                  onClick={(e) => handleToggleFavorite(e, place.id)}
+                >
+                  <Heart className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
 
             {/* Content */}
@@ -188,6 +230,7 @@ export default function PlacesPage() {
       {selectedPlace && (
         <PlaceDetailModal place={selectedPlace} onClose={() => setSelectedPlace(null)} />
       )}
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </div>
   )
 }

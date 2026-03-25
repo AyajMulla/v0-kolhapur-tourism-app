@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const { token } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("places");
-  const [data, setData] = useState({ places: [], hotels: [], restaurants: [] });
+  const [data, setData] = useState({ places: [], hotels: [], restaurants: [], admins: [] });
   const [loading, setLoading] = useState(true);
 
   // Modal State
@@ -38,17 +38,21 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [placesRes, hotelsRes, restRes] = await Promise.all([
+      const [placesRes, hotelsRes, restRes, adminsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/places`),
         fetch(`${API_BASE_URL}/api/hotels`),
         fetch(`${API_BASE_URL}/api/restaurants`),
+        fetch(`${API_BASE_URL}/api/admin/users`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
       ]);
-      const [places, hotels, restaurants] = await Promise.all([
+      const [places, hotels, restaurants, admins] = await Promise.all([
         placesRes.json(),
         hotelsRes.json(),
         restRes.json(),
+        adminsRes.json(),
       ]);
-      setData({ places, hotels, restaurants });
+      setData({ places, hotels, restaurants, admins });
     } catch (error) {
       console.error("Failed to fetch admin data", error);
       toast({ title: "Connection Error", description: "Failed to load database records.", variant: "destructive" });
@@ -72,9 +76,23 @@ export default function AdminDashboard() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    const endpoint = `${API_BASE_URL}/api/admin/${activeTab}`;
-    const url = editingItem ? `${endpoint}/${editingItem.id}` : endpoint;
-    const method = editingItem ? "PUT" : "POST";
+    
+    let url, method, body;
+    
+    if (activeTab === 'admins') {
+      url = `${API_BASE_URL}/api/admin/users/create-admin`;
+      method = "POST";
+      body = JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      });
+    } else {
+      const endpoint = `${API_BASE_URL}/api/admin/${activeTab}`;
+      url = editingItem ? `${endpoint}/${editingItem.id}` : endpoint;
+      method = editingItem ? "PUT" : "POST";
+      body = JSON.stringify(formData);
+    }
 
     try {
       const res = await fetch(url, {
@@ -83,7 +101,7 @@ export default function AdminDashboard() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body
       });
       if (!res.ok) throw new Error("Failed to save data");
       
@@ -215,26 +233,37 @@ export default function AdminDashboard() {
                   className="p-4 font-semibold text-sm cursor-pointer hover:bg-gray-100 transition select-none"
                   onClick={() => handleSort("category")}
                 >
-                  Category <SortIcon columnKey="category" />
+                  {activeTab === 'admins' ? 'Email' : 'Category'} <SortIcon columnKey={activeTab === 'admins' ? 'email' : 'category'} />
                 </th>
                 <th className="p-4 font-semibold text-sm text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {paginatedItems.map((item, idx) => (
-                <tr key={item.id || idx} className="hover:bg-orange-50/30 transition-colors group">
-                  <td className="p-4 font-mono text-xs text-gray-500 w-1/4">{item.id}</td>
+                <tr key={item.id || item._id || idx} className="hover:bg-orange-50/30 transition-colors group">
+                  <td className="p-4 font-mono text-xs text-gray-500 w-1/4">{item.id || item._id}</td>
                   <td className="p-4 font-medium text-gray-900">{item.name}</td>
                   <td className="p-4">
-                    <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold border border-orange-200">
-                      {item.category || item.cuisine || "Unknown"}
-                    </span>
+                    {activeTab === 'admins' ? (
+                      <span className="text-gray-600 text-sm">{item.email}</span>
+                    ) : (
+                      <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold border border-orange-200">
+                        {item.category || item.cuisine || "Unknown"}
+                      </span>
+                    )}
                   </td>
                   <td className="p-4 flex justify-end space-x-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button size="icon" variant="outline" className="h-8 w-8 text-blue-600 hover:bg-blue-50 border-blue-200" onClick={() => handleOpenModal(item)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="outline" className="h-8 w-8 text-red-600 hover:bg-red-50 border-red-200" onClick={() => handleDelete(item.id)}>
+                    {activeTab !== 'admins' && (
+                      <Button size="icon" variant="outline" className="h-8 w-8 text-blue-600 hover:bg-blue-50 border-blue-200" onClick={() => handleOpenModal(item)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button 
+                      size="icon" 
+                      variant="outline" 
+                      className="h-8 w-8 text-red-600 hover:bg-red-50 border-red-200" 
+                      onClick={() => activeTab === 'admins' ? toast({title: "Not Implemented", description: "Admin deletion must be done via DB for safety."}) : handleDelete(item.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </td>
@@ -354,10 +383,11 @@ export default function AdminDashboard() {
         <Card className="shadow-lg border-0 rounded-2xl overflow-hidden bg-white">
           <CardHeader className="bg-white border-b px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
-              <TabsList className="grid w-full grid-cols-3 bg-gray-100/80 p-1 rounded-lg">
+              <TabsList className="grid w-full grid-cols-4 bg-gray-100/80 p-1 rounded-lg">
                 <TabsTrigger value="places" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">Places</TabsTrigger>
                 <TabsTrigger value="hotels" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">Hotels</TabsTrigger>
                 <TabsTrigger value="restaurants" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">Restaurants</TabsTrigger>
+                <TabsTrigger value="admins" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">Admins</TabsTrigger>
               </TabsList>
             </Tabs>
             
@@ -387,6 +417,9 @@ export default function AdminDashboard() {
               <TabsContent value="restaurants" className="m-0 p-6 animate-in fade-in duration-300">
                 {renderTable(data.restaurants)}
               </TabsContent>
+              <TabsContent value="admins" className="m-0 p-6 animate-in fade-in duration-300">
+                {renderTable(data.admins)}
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
@@ -396,77 +429,127 @@ export default function AdminDashboard() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingItem ? "Edit Record" : "Create New Record"}</DialogTitle>
+            <DialogTitle>{editingItem ? "Edit Record" : (activeTab === 'admins' ? "Add New Administrator" : "Create New Record")}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>ID (Slug)</Label>
-                <Input required disabled={!!editingItem} value={formData.id || ""} onChange={e => setFormData({...formData, id: e.target.value})} placeholder="e.g. mahalaxmi-temple" />
-              </div>
-              <div className="space-y-2">
-                <Label>Name</Label>
-                <Input required value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Location Name" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Category / Cuisine</Label>
-              <Input required value={formData.category || formData.cuisine || ""} onChange={e => setFormData({...formData, category: e.target.value, cuisine: e.target.value})} />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Image URL</Label>
-              <Input value={formData.image || ""} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="/placeholder.jpg" />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Rating</Label>
-              <Input type="number" step="0.1" max="5" required value={formData.rating || 4.0} onChange={e => setFormData({...formData, rating: parseFloat(e.target.value)})} />
-            </div>
-
-            {(activeTab === "places") ? (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Visit Duration</Label>
-                    <Input value={formData.visitDuration || ""} onChange={e => setFormData({...formData, visitDuration: e.target.value})} placeholder="e.g. 2-3 hours" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Best Time</Label>
-                    <Input value={formData.bestTimeToVisit || ""} onChange={e => setFormData({...formData, bestTimeToVisit: e.target.value})} placeholder="e.g. October to March" />
-                  </div>
+            {activeTab === 'admins' ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Full Name</Label>
+                  <Input required value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. John Doe" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <textarea 
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    required value={formData.description || ""} onChange={e => setFormData({...formData, description: e.target.value})} 
-                  />
+                  <Label>Email Address</Label>
+                  <Input required type="email" value={formData.email || ""} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Visitor Tips (Comma Separated)</Label>
-                  <Input 
-                    value={formData.visitorTips?.join(", ") || ""} 
-                    onChange={e => setFormData({...formData, visitorTips: e.target.value.split(",").map(s => s.trim()).filter(Boolean)})} 
-                    placeholder="e.g. Bring water, Wear shoes..." 
-                  />
+                  <Label>Password</Label>
+                  <Input required type="password" value={formData.password || ""} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="Min 6 characters" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Taluka ID</Label>
-                    <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Taluka Name</Label>
-                    <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
-                  </div>
-                </div>
-              </>
+              </div>
             ) : (
-              <div className="space-y-2">
-                <Label>Address</Label>
-                <Input required value={formData.address || ""} onChange={e => setFormData({...formData, address: e.target.value})} />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>ID (Slug)</Label>
+                    <Input required disabled={!!editingItem} value={formData.id || ""} onChange={e => setFormData({...formData, id: e.target.value})} placeholder="e.g. mahalaxmi-temple" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Name</Label>
+                    <Input required value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Location Name" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Category / Cuisine</Label>
+                  <Input required value={formData.category || formData.cuisine || ""} onChange={e => setFormData({...formData, category: e.target.value, cuisine: e.target.value})} />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Image URL</Label>
+                  <Input value={formData.image || ""} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="/placeholder.jpg" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Rating</Label>
+                  <Input type="number" step="0.1" max="5" required value={formData.rating || 4.0} onChange={e => setFormData({...formData, rating: parseFloat(e.target.value)})} />
+                </div>
+
+                {activeTab === "places" ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Visit Duration</Label>
+                        <Input value={formData.visitDuration || ""} onChange={e => setFormData({...formData, visitDuration: e.target.value})} placeholder="e.g. 2-3 hours" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Best Time</Label>
+                        <Input value={formData.bestTimeToVisit || ""} onChange={e => setFormData({...formData, bestTimeToVisit: e.target.value})} placeholder="e.g. October to March" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <textarea 
+                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        required value={formData.description || ""} onChange={e => setFormData({...formData, description: e.target.value})} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Visitor Tips (Comma Separated)</Label>
+                      <Input 
+                        value={formData.visitorTips?.join(", ") || ""} 
+                        onChange={e => setFormData({...formData, visitorTips: e.target.value.split(",").map(s => s.trim()).filter(Boolean)})} 
+                        placeholder="e.g. Bring water, Wear shoes..." 
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Taluka ID</Label>
+                        <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Taluka Name</Label>
+                        <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Latitude</Label>
+                        <Input 
+                          type="number" 
+                          step="0.0001" 
+                          value={formData.coordinates?.[0] || ""} 
+                          onChange={e => {
+                            const coords = [...(formData.coordinates || [0, 0])];
+                            coords[0] = parseFloat(e.target.value);
+                            setFormData({...formData, coordinates: coords});
+                          }} 
+                          placeholder="e.g. 16.7050" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Longitude</Label>
+                        <Input 
+                          type="number" 
+                          step="0.0001" 
+                          value={formData.coordinates?.[1] || ""} 
+                          onChange={e => {
+                            const coords = [...(formData.coordinates || [0, 0])];
+                            coords[1] = parseFloat(e.target.value);
+                            setFormData({...formData, coordinates: coords});
+                          }} 
+                          placeholder="e.g. 74.2433" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Address</Label>
+                    <Input required value={formData.address || ""} onChange={e => setFormData({...formData, address: e.target.value})} />
+                  </div>
+                )}
               </div>
             )}
 

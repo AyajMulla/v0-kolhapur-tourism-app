@@ -103,6 +103,20 @@ export default function Header() {
             >
               Hotels
             </Link>
+            
+            {user && (
+              <Link
+                href="/plan-trip"
+                className="relative text-gray-700 hover:text-orange-600 transition-colors font-medium flex items-center"
+              >
+                Plan Trip
+                {user.favorites?.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
+                    {user.favorites.length}
+                  </span>
+                )}
+              </Link>
+            )}
             {user ? (
               <div className="flex items-center space-x-4">
                 {user.role === "admin" && (
@@ -175,9 +189,24 @@ export default function Header() {
               <Link
                 href="/hotels"
                 className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Hotels
               </Link>
+              {user && (
+                <Link
+                  href="/plan-trip"
+                  className="text-gray-700 hover:text-orange-600 transition-colors font-medium flex items-center justify-between"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>Plan Trip</span>
+                  {user.favorites?.length > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {user.favorites.length}
+                    </span>
+                  )}
+                </Link>
+              )}
               {user ? (
                 <>
                   <div className="py-2 text-center text-gray-700 font-medium border-y border-orange-100 flex flex-col space-y-2">
