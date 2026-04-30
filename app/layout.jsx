@@ -26,6 +26,7 @@ export const metadata = {
 }
 
 import { AuthProvider } from "@/lib/auth-context"
+import SWRegister from "@/components/sw-register"
 
 export default function RootLayout({ children }) {
   return (
@@ -45,6 +46,7 @@ export default function RootLayout({ children }) {
             {children}
             <AIAssistant />
             <Toaster />
+            <SWRegister />
           </AuthProvider>
         </ThemeProvider>
       </body>

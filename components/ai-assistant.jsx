@@ -62,7 +62,7 @@ export default function AIAssistant() {
           <MessageSquare className="h-8 w-8 text-white relative z-10" />
         </Button>
       ) : (
-        <Card className="w-[350px] sm:w-[400px] h-[500px] shadow-2xl flex flex-col border-orange-100 animate-in slide-in-from-bottom-5 duration-300">
+        <Card className="w-[350px] sm:w-[400px] h-[500px] shadow-2xl flex flex-col border border-orange-100 animate-in slide-in-from-bottom-5 duration-300 bg-white overflow-hidden">
           <CardHeader className="bg-orange-600 text-white p-4 rounded-t-xl shrink-0">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
@@ -87,7 +87,7 @@ export default function AIAssistant() {
           >
             <div 
               ref={scrollRef}
-              className="flex-grow overflow-y-auto p-4 space-y-4 scroll-smooth"
+              className="flex-grow overflow-y-auto p-4 space-y-4 scroll-smooth bg-gray-50"
             >
               {history.map((msg, idx) => (
                 <div 

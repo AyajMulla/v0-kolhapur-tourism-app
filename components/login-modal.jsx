@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { X, Mail, Lock, User, AlertCircle } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,13 +11,18 @@ import { useToast } from "@/hooks/use-toast"
 
 export default function LoginModal({ isOpen, onClose }) {
   const [isLogin, setIsLogin] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const [formData, setFormData] = useState({ name: "", email: "", password: "" })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const { login, register } = useAuth()
   const { toast } = useToast()
 
-  if (!isOpen) return null
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!isOpen || !mounted) return null
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -53,11 +58,23 @@ export default function LoginModal({ isOpen, onClose }) {
     }
   }
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-white border-0 shadow-2xl p-0 overflow-hidden">
-        <DialogDescription className="sr-only">Login authentication modal</DialogDescription>
-        <div className="flex flex-col md:flex-row">
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+        onClick={onClose}
+      />
+      <div className="relative w-full max-w-md md:max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden z-10 flex flex-col md:flex-row">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 z-20 p-2 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <X className="h-4 w-4 text-gray-500" />
+          <span className="sr-only">Close</span>
+        </button>
+        <div className="flex flex-col md:flex-row w-full">
+
           
           {/* Left Side Branding */}
           <div className="hidden md:flex flex-col justify-center items-center w-2/5 bg-gradient-to-br from-orange-500 to-red-600 p-8 text-white">
@@ -72,14 +89,14 @@ export default function LoginModal({ isOpen, onClose }) {
 
           {/* Right Side Form */}
           <div className="w-full md:w-3/5 p-8 relative">
-            <DialogHeader className="mb-6">
-              <DialogTitle className="text-2xl font-bold text-gray-800">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">
                 {isLogin ? "Sign In" : "Create Account"}
-              </DialogTitle>
-              <DialogDescription className="text-sm text-gray-500 mt-1">
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
                 {isLogin ? "Welcome back! Please enter your details." : "Register to unlock premium features."}
-              </DialogDescription>
-            </DialogHeader>
+              </p>
+            </div>
 
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg flex items-start text-red-600 text-sm">
@@ -165,7 +182,8 @@ export default function LoginModal({ isOpen, onClose }) {
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>,
+    document.body
   )
 }

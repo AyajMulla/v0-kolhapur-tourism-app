@@ -220,9 +220,9 @@ If asked for an itinerary, try to group places by Taluka (Region) to save travel
       { role: 'user', content: message }
     ];
 
-    // 4. Call DeepSeek (NVIDIA NIM)
+    // 4. Call NVIDIA NIM (Llama 3.1)
     const completion = await openai.chat.completions.create({
-      model: 'deepseek-ai/deepseek-v3.1',
+      model: 'meta/llama-3.1-8b-instruct',
       messages: messages,
       temperature: 0.7,
       max_tokens: 500,

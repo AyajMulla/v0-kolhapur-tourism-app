@@ -89,12 +89,24 @@ export default function RouteModal({ destination, onClose }) {
   }, [destination.name])
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
-        <DialogDescription className="sr-only">Route details</DialogDescription>
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-800 pr-10">Routes to {destination.name}</DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+        onClick={onClose}
+      />
+      <div className="relative w-full max-w-2xl bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl z-10 flex flex-col p-6 max-h-[90vh] overflow-y-auto">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 z-20 p-2 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <X className="h-4 w-4 text-gray-500" />
+          <span className="sr-only">Close</span>
+        </button>
+        <div className="mb-4 pr-8">
+          <h2 className="text-xl font-bold text-gray-800 pr-10">Routes to {destination.name}</h2>
+          <p className="sr-only">Route details</p>
+        </div>
 
         <div className="space-y-4">
           {/* Route Overview */}
@@ -230,7 +242,7 @@ export default function RouteModal({ destination, onClose }) {
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   )
 }

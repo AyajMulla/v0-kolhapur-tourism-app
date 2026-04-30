@@ -80,10 +80,11 @@ export default function TalukaGrid({ talukas }) {
               >
                 <div className="relative h-64 overflow-hidden">
                   <img
-                    src={place.image || "/placeholder.svg"}
+                    src={place.image || "/placeholder.jpg"}
                     alt={place.name}
                     fetchPriority={taluka.id === "karveer" && place.id === "mahalaxmi-temple" ? "high" : undefined}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    onError={(e) => { e.target.src = "/placeholder.jpg"; }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute top-4 left-4">

@@ -1,0 +1,1 @@
+{"error":"AI Assistant is temporarily unavailable.","details":"404 404 page not found\n","apiKeyPresent":true}

@@ -59,12 +59,24 @@ export default function WeatherModal({ place, onClose }) {
   }
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
-        <DialogDescription className="sr-only">Live weather details and travel recommendations.</DialogDescription>
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-800 pr-10">Weather at {place.name}</DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+        onClick={onClose}
+      />
+      <div className="relative w-full max-w-md bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl z-10 flex flex-col p-6">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 z-20 p-2 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <X className="h-4 w-4 text-gray-500" />
+          <span className="sr-only">Close</span>
+        </button>
+        <div className="mb-4 pr-8">
+          <h2 className="text-xl font-bold text-gray-800 pr-10">Weather at {place.name}</h2>
+          <p className="sr-only">Live weather details and travel recommendations.</p>
+        </div>
 
         <div className="space-y-4">
           {loading ? (
@@ -77,7 +89,7 @@ export default function WeatherModal({ place, onClose }) {
               {/* Current Weather */}
               <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
                 <CardContent className="p-6 text-center">
-                  <div className="mb-4">{getWeatherIcon(weather.condition)}</div>
+                  <div className="mb-4 flex justify-center">{getWeatherIcon(weather.condition)}</div>
                   <h3 className="text-3xl font-bold text-gray-800 mb-2">{weather.temperature}°C</h3>
                   <p className="text-lg text-gray-700 mb-1">{weather.condition}</p>
                   <p className="text-sm text-gray-600">{weather.description}</p>
@@ -135,7 +147,7 @@ export default function WeatherModal({ place, onClose }) {
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   )
 }

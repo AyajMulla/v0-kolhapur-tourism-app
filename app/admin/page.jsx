@@ -3,12 +3,11 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Trash2, Edit, Plus, RefreshCw, Search, BedDouble, Utensils, MapPin, Download, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, ArrowLeft } from "lucide-react";
+import { Trash2, Edit, Plus, RefreshCw, Search, BedDouble, Utensils, MapPin, Download, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, ArrowLeft, X, Upload, FileSpreadsheet, CheckCircle, AlertCircle } from "lucide-react";
 import { API_BASE_URL } from "@/lib/config";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -30,6 +29,13 @@ export default function AdminDashboard() {
   const [sortConfig, setSortConfig] = useState({ key: "id", direction: "asc" });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+
+  // CSV Import State
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvUploading, setCsvUploading] = useState(false);
+  const [csvResult, setCsvResult] = useState(null);
+  const [csvDragOver, setCsvDragOver] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -64,12 +70,18 @@ export default function AdminDashboard() {
   const handleOpenModal = (item = null) => {
     setEditingItem(item);
     if (item) {
-      setFormData(item);
+      setFormData({ ...item });
     } else {
-      // Default empty form payload
-      setFormData({
-        id: "", name: "", description: "", image: "", category: "", rating: 4.0, address: "", talukaId: ""
-      });
+      // Initialize form with tab-specific defaults so all required fields are present
+      if (activeTab === 'places') {
+        setFormData({ id: "", name: "", description: "", image: "/placeholder.jpg", category: "", rating: 4.0, talukaId: "", talukaName: "", visitDuration: "", bestTimeToVisit: "", visitorTips: [] });
+      } else if (activeTab === 'hotels') {
+        setFormData({ id: "", name: "", category: "", rating: 4.0, address: "", priceRange: "", phone: "", website: "" });
+      } else if (activeTab === 'restaurants') {
+        setFormData({ id: "", name: "", cuisine: "", rating: 4.0, address: "", priceRange: "", phone: "", openHours: "" });
+      } else {
+        setFormData({ name: "", email: "", password: "" });
+      }
     }
     setIsModalOpen(true);
   };
@@ -103,7 +115,15 @@ export default function AdminDashboard() {
         },
         body
       });
-      if (!res.ok) throw new Error("Failed to save data");
+      if (!res.ok) {
+        // Read actual error message from server response
+        let errMsg = "Failed to save data";
+        try {
+          const errData = await res.json();
+          errMsg = errData.error || errData.msg || errData.message || errMsg;
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
       
       setIsModalOpen(false);
       toast({ title: "Success", description: `Record successfully ${editingItem ? 'updated' : 'created'}.`, variant: "default" });
@@ -161,6 +181,43 @@ export default function AdminDashboard() {
     document.body.removeChild(a);
     
     toast({ title: "Export Successful", description: `Downloaded ${items.length} records.`, variant: "default" });
+  };
+
+  // --- CSV IMPORT FUNCTIONS ---
+  const downloadCsvTemplate = () => {
+    const headers = "id,name,description,image,category,rating,visitDuration,bestTimeToVisit,talukaId,talukaName,coordinates_lat,coordinates_lng,visitorTips";
+    const sample = "amboli-viewpoint,Amboli Viewpoint,Scenic viewpoint in the Western Ghats.,/amboli-ghat.jpg,Nature,4.5,2-3 hours,June to September,ajara,Ajara,16.0500,74.0300,Carry rainwear|Visit early morning";
+    const blob = new Blob([headers + "\n" + sample], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "places_import_template.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handleCsvUpload = async () => {
+    if (!csvFile) return;
+    setCsvUploading(true);
+    setCsvResult(null);
+    const formData = new FormData();
+    formData.append("file", csvFile);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/places/bulk-upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      setCsvResult(data);
+      fetchData(); // Refresh the places table
+    } catch (err) {
+      setCsvResult({ error: err.message });
+    } finally {
+      setCsvUploading(false);
+    }
   };
 
   const handleSort = (key) => {
@@ -340,6 +397,15 @@ export default function AdminDashboard() {
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh Data
             </Button>
+            {activeTab === "places" && (
+              <Button
+                variant="outline"
+                onClick={() => { setIsCsvModalOpen(true); setCsvFile(null); setCsvResult(null); }}
+                className="bg-white text-blue-700 hover:bg-blue-50 hover:text-blue-800 border-blue-200 shadow-sm"
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Import CSV
+              </Button>
+            )}
             <Button onClick={() => handleOpenModal(null)} className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white shadow-md">
               <Plus className="h-4 w-4 mr-2" /> Add Record
             </Button>
@@ -425,141 +491,346 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Editor Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingItem ? "Edit Record" : (activeTab === 'admins' ? "Add New Administrator" : "Create New Record")}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4 py-4">
-            {activeTab === 'admins' ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Full Name</Label>
-                  <Input required value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. John Doe" />
+      {/* Custom Editor Modal - fixed overlay to avoid Radix portal issues */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onClick={(e) => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)' }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-4 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editingItem ? "Edit Record" : (activeTab === 'admins' ? "Add New Administrator" : `Add New ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1, -1)}`)}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Body - Form */}
+            <form onSubmit={handleSave} className="px-6 py-5 space-y-4">
+              {activeTab === 'admins' ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Full Name</Label>
+                    <Input required value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. John Doe" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email Address</Label>
+                    <Input required type="email" value={formData.email || ""} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Password</Label>
+                    <Input required type="password" value={formData.password || ""} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="Min 6 characters" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Email Address</Label>
-                  <Input required type="email" value={formData.email || ""} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>ID (Slug)</Label>
+                      <Input required disabled={!!editingItem} value={formData.id || ""} onChange={e => setFormData({...formData, id: e.target.value})} placeholder="e.g. mahalaxmi-temple" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Name</Label>
+                      <Input required value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Location Name" />
+                    </div>
+                  </div>
+
+                  {/* Category field: 'cuisine' for restaurants, 'category' for others */}
+                  <div className="space-y-2">
+                    <Label>{activeTab === 'restaurants' ? 'Cuisine Type' : 'Category'}</Label>
+                    <Input
+                      required
+                      value={activeTab === 'restaurants' ? (formData.cuisine || "") : (formData.category || "")}
+                      onChange={e => {
+                        if (activeTab === 'restaurants') {
+                          setFormData({...formData, cuisine: e.target.value});
+                        } else {
+                          setFormData({...formData, category: e.target.value});
+                        }
+                      }}
+                      placeholder={activeTab === 'restaurants' ? "e.g. Maharashtrian" : "e.g. Temple"}
+                    />
+                  </div>
+
+                  {/* Image URL — only for places (required there) */}
+                  {activeTab === 'places' && (
+                    <div className="space-y-2">
+                      <Label>Image URL <span className="text-red-500">*</span></Label>
+                      <Input required value={formData.image || ""} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="/placeholder.jpg" />
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>Rating</Label>
+                    <Input type="number" step="0.1" min="1" max="5" required value={formData.rating ?? 4.0} onChange={e => setFormData({...formData, rating: parseFloat(e.target.value)})} />
+                  </div>
+
+                  {activeTab === "places" ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Visit Duration</Label>
+                          <Input value={formData.visitDuration || ""} onChange={e => setFormData({...formData, visitDuration: e.target.value})} placeholder="e.g. 2-3 hours" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Best Time</Label>
+                          <Input value={formData.bestTimeToVisit || ""} onChange={e => setFormData({...formData, bestTimeToVisit: e.target.value})} placeholder="e.g. October to March" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Description <span className="text-red-500">*</span></Label>
+                        <textarea
+                          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2"
+                          required value={formData.description || ""} onChange={e => setFormData({...formData, description: e.target.value})}
+                          placeholder="Brief description of this place..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Visitor Tips (Comma Separated)</Label>
+                        <Input
+                          value={formData.visitorTips?.join(", ") || ""}
+                          onChange={e => setFormData({...formData, visitorTips: e.target.value.split(",").map(s => s.trim()).filter(Boolean)})}
+                          placeholder="e.g. Bring water, Wear shoes..."
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Taluka ID</Label>
+                          <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Taluka Name</Label>
+                          <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Latitude</Label>
+                          <Input
+                            type="number"
+                            step="0.0001"
+                            value={formData.coordinates?.[0] || ""}
+                            onChange={e => {
+                              const coords = [...(formData.coordinates || [0, 0])];
+                              coords[0] = parseFloat(e.target.value);
+                              setFormData({...formData, coordinates: coords});
+                            }}
+                            placeholder="e.g. 16.7050"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Longitude</Label>
+                          <Input
+                            type="number"
+                            step="0.0001"
+                            value={formData.coordinates?.[1] || ""}
+                            onChange={e => {
+                              const coords = [...(formData.coordinates || [0, 0])];
+                              coords[1] = parseFloat(e.target.value);
+                              setFormData({...formData, coordinates: coords});
+                            }}
+                            placeholder="e.g. 74.2433"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Address <span className="text-red-500">*</span></Label>
+                        <Input required value={formData.address || ""} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="Full address" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Price Range</Label>
+                          <Input value={formData.priceRange || ""} onChange={e => setFormData({...formData, priceRange: e.target.value})} placeholder="e.g. ₹500-₹1500" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Phone</Label>
+                          <Input value={formData.phone || ""} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+91 XXXXXXXXXX" />
+                        </div>
+                      </div>
+                      {activeTab === 'hotels' && (
+                        <div className="space-y-2">
+                          <Label>Website</Label>
+                          <Input value={formData.website || ""} onChange={e => setFormData({...formData, website: e.target.value})} placeholder="https://..." />
+                        </div>
+                      )}
+                      {activeTab === 'restaurants' && (
+                        <div className="space-y-2">
+                          <Label>Open Hours</Label>
+                          <Input value={formData.openHours || ""} onChange={e => setFormData({...formData, openHours: e.target.value})} placeholder="e.g. 9 AM - 10 PM" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label>Password</Label>
-                  <Input required type="password" value={formData.password || ""} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="Min 6 characters" />
+              )}
+
+              {/* Modal Footer */}
+              <div className="flex justify-end gap-3 pt-2">
+                <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                <Button type="submit" className="bg-orange-600 hover:bg-orange-700 text-white">Save Changes</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CSV Import Modal */}
+      {isCsvModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onClick={(e) => { if (e.target === e.currentTarget) { setIsCsvModalOpen(false); } }}
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)' }}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileSpreadsheet className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Import Places from CSV / Excel</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">Upload a .csv or .xlsx file to bulk-add places</p>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>ID (Slug)</Label>
-                    <Input required disabled={!!editingItem} value={formData.id || ""} onChange={e => setFormData({...formData, id: e.target.value})} placeholder="e.g. mahalaxmi-temple" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Name</Label>
-                    <Input required value={formData.name || ""} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Location Name" />
-                  </div>
+              <button type="button" onClick={() => setIsCsvModalOpen(false)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-5">
+              {/* Download Template */}
+              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div>
+                  <p className="text-sm font-semibold text-blue-800">Need a template?</p>
+                  <p className="text-xs text-blue-600 mt-0.5">Download the sample CSV with correct column headers</p>
                 </div>
+                <Button size="sm" variant="outline" onClick={downloadCsvTemplate} className="border-blue-300 text-blue-700 hover:bg-blue-100 shrink-0">
+                  <Download className="h-3.5 w-3.5 mr-1.5" /> Template
+                </Button>
+              </div>
 
-                <div className="space-y-2">
-                  <Label>Category / Cuisine</Label>
-                  <Input required value={formData.category || formData.cuisine || ""} onChange={e => setFormData({...formData, category: e.target.value, cuisine: e.target.value})} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Image URL</Label>
-                  <Input value={formData.image || ""} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="/placeholder.jpg" />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Rating</Label>
-                  <Input type="number" step="0.1" max="5" required value={formData.rating || 4.0} onChange={e => setFormData({...formData, rating: parseFloat(e.target.value)})} />
-                </div>
-
-                {activeTab === "places" ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Visit Duration</Label>
-                        <Input value={formData.visitDuration || ""} onChange={e => setFormData({...formData, visitDuration: e.target.value})} placeholder="e.g. 2-3 hours" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Best Time</Label>
-                        <Input value={formData.bestTimeToVisit || ""} onChange={e => setFormData({...formData, bestTimeToVisit: e.target.value})} placeholder="e.g. October to March" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Description</Label>
-                      <textarea 
-                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        required value={formData.description || ""} onChange={e => setFormData({...formData, description: e.target.value})} 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Visitor Tips (Comma Separated)</Label>
-                      <Input 
-                        value={formData.visitorTips?.join(", ") || ""} 
-                        onChange={e => setFormData({...formData, visitorTips: e.target.value.split(",").map(s => s.trim()).filter(Boolean)})} 
-                        placeholder="e.g. Bring water, Wear shoes..." 
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Taluka ID</Label>
-                        <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Taluka Name</Label>
-                        <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Latitude</Label>
-                        <Input 
-                          type="number" 
-                          step="0.0001" 
-                          value={formData.coordinates?.[0] || ""} 
-                          onChange={e => {
-                            const coords = [...(formData.coordinates || [0, 0])];
-                            coords[0] = parseFloat(e.target.value);
-                            setFormData({...formData, coordinates: coords});
-                          }} 
-                          placeholder="e.g. 16.7050" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Longitude</Label>
-                        <Input 
-                          type="number" 
-                          step="0.0001" 
-                          value={formData.coordinates?.[1] || ""} 
-                          onChange={e => {
-                            const coords = [...(formData.coordinates || [0, 0])];
-                            coords[1] = parseFloat(e.target.value);
-                            setFormData({...formData, coordinates: coords});
-                          }} 
-                          placeholder="e.g. 74.2433" 
-                        />
-                      </div>
-                    </div>
+              {/* File Drop Zone */}
+              <div
+                onDragOver={(e) => { e.preventDefault(); setCsvDragOver(true); }}
+                onDragLeave={() => setCsvDragOver(false)}
+                onDrop={(e) => { e.preventDefault(); setCsvDragOver(false); const f = e.dataTransfer.files[0]; if (f) { setCsvFile(f); setCsvResult(null); } }}
+                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
+                  csvDragOver ? 'border-blue-500 bg-blue-50' : csvFile ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                }`}
+                onClick={() => document.getElementById('csv-file-input').click()}
+              >
+                <input
+                  id="csv-file-input"
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files[0]; if (f) { setCsvFile(f); setCsvResult(null); } }}
+                />
+                {csvFile ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <CheckCircle className="h-8 w-8 text-green-500" />
+                    <p className="font-semibold text-green-700">{csvFile.name}</p>
+                    <p className="text-xs text-gray-500">{(csvFile.size / 1024).toFixed(1)} KB — Click to change file</p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    <Label>Address</Label>
-                    <Input required value={formData.address || ""} onChange={e => setFormData({...formData, address: e.target.value})} />
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="h-8 w-8 text-gray-400" />
+                    <p className="font-medium text-gray-600">Drag & drop your file here</p>
+                    <p className="text-xs text-gray-400">or click to browse — .csv or .xlsx, max 5 MB</p>
                   </div>
                 )}
               </div>
-            )}
 
-            <DialogFooter className="mt-6">
-              <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-              <Button type="submit" className="bg-orange-600 hover:bg-orange-700 text-white">Save Changes</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+              {/* Column Reference */}
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <p className="text-xs font-semibold text-gray-600 mb-2">📋 Required CSV Columns</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['id','name','description','category'].map(c => (
+                    <span key={c} className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-mono border border-red-200">{c} *</span>
+                  ))}
+                  {['image','rating','visitDuration','bestTimeToVisit','talukaId','talukaName','coordinates_lat','coordinates_lng','visitorTips'].map(c => (
+                    <span key={c} className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full font-mono">{c}</span>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-2">* Required &nbsp;|&nbsp; Use <code className="bg-gray-200 px-1 rounded">|</code> to separate multiple visitorTips</p>
+              </div>
+
+              {/* Upload Result */}
+              {csvResult && (
+                <div className={`rounded-xl p-4 border ${
+                  csvResult.error ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'
+                }`}>
+                  {csvResult.error ? (
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                      <p className="text-sm text-red-700 font-medium">{csvResult.error}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <p className="text-sm font-semibold text-green-800">Upload Complete</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="text-center bg-white rounded-lg p-2 border border-green-200">
+                          <p className="text-2xl font-bold text-green-600">{csvResult.inserted}</p>
+                          <p className="text-xs text-gray-500">Inserted</p>
+                        </div>
+                        <div className="text-center bg-white rounded-lg p-2 border border-yellow-200">
+                          <p className="text-2xl font-bold text-yellow-600">{csvResult.skipped || 0}</p>
+                          <p className="text-xs text-gray-500">Skipped</p>
+                        </div>
+                        <div className="text-center bg-white rounded-lg p-2 border border-red-200">
+                          <p className="text-2xl font-bold text-red-500">{csvResult.errors?.length || 0}</p>
+                          <p className="text-xs text-gray-500">Errors</p>
+                        </div>
+                      </div>
+                      {csvResult.errors?.length > 0 && (
+                        <div className="bg-white rounded-lg border border-red-200 divide-y divide-red-100 max-h-32 overflow-y-auto">
+                          {csvResult.errors.map((e, i) => (
+                            <div key={i} className="px-3 py-1.5 flex justify-between text-xs">
+                              <span className="text-gray-500">Row {e.row}</span>
+                              <span className="text-red-600">{e.reason}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-1">
+                <Button type="button" variant="outline" onClick={() => setIsCsvModalOpen(false)}>Cancel</Button>
+                <Button
+                  onClick={handleCsvUpload}
+                  disabled={!csvFile || csvUploading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {csvUploading ? (
+                    <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Uploading...</>
+                  ) : (
+                    <><Upload className="h-4 w-4 mr-2" /> Upload & Import</>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
