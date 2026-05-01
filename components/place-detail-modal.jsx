@@ -67,8 +67,35 @@ export default function PlaceDetailModal({ place, onClose }) {
   if (!place) return null
 
   // Get nearby restaurants and hotels
-  const nearbyRestaurants = restaurants.filter((restaurant) => place.nearbyRestaurants?.includes(restaurant.id))
-  const nearbyHotels = hotels.filter((hotel) => place.nearbyHotels?.includes(hotel.id))
+  let nearbyRestaurants = [];
+  if (place.nearbyRestaurants && place.nearbyRestaurants.length > 0) {
+    // Use only explicitly linked restaurants if they exist
+    nearbyRestaurants = restaurants.filter((r) => place.nearbyRestaurants.includes(r.id));
+  } else {
+    // Fallback to same Taluka but limit to 4
+    nearbyRestaurants = restaurants.filter((r) => {
+      const resTaluka = (r.talukaName || "").trim().toLowerCase();
+      const resTalukaId = (r.talukaId || "").trim().toLowerCase();
+      const placeTaluka = (place.talukaName || "").trim().toLowerCase();
+      const placeTalukaId = (place.talukaId || "").trim().toLowerCase();
+      return (resTaluka && resTaluka === placeTaluka) || (resTalukaId && resTalukaId === placeTalukaId);
+    }).slice(0, 4);
+  }
+
+  let nearbyHotels = [];
+  if (place.nearbyHotels && place.nearbyHotels.length > 0) {
+    // Use only explicitly linked hotels if they exist
+    nearbyHotels = hotels.filter((h) => place.nearbyHotels.includes(h.id));
+  } else {
+    // Fallback to same Taluka but limit to 4
+    nearbyHotels = hotels.filter((h) => {
+      const hotTaluka = (h.talukaName || "").trim().toLowerCase();
+      const hotTalukaId = (h.talukaId || "").trim().toLowerCase();
+      const placeTaluka = (place.talukaName || "").trim().toLowerCase();
+      const placeTalukaId = (place.talukaId || "").trim().toLowerCase();
+      return (hotTaluka && hotTaluka === placeTaluka) || (hotTalukaId && hotTalukaId === placeTalukaId);
+    }).slice(0, 4);
+  }
 
   return (
     <>

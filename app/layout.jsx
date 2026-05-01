@@ -26,6 +26,7 @@ export const metadata = {
 }
 
 import { AuthProvider } from "@/lib/auth-context"
+import { LanguageProvider } from "@/lib/language-context"
 import SWRegister from "@/components/sw-register"
 
 export default function RootLayout({ children }) {
@@ -42,12 +43,14 @@ export default function RootLayout({ children }) {
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            {children}
-            <AIAssistant />
-            <Toaster />
-            <SWRegister />
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              {children}
+              <AIAssistant />
+              <Toaster />
+              <SWRegister />
+            </AuthProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

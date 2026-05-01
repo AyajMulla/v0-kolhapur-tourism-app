@@ -1,7 +1,10 @@
 import Link from "next/link"
 import { MapPin, Phone, Mail, Facebook, Twitter, Instagram, Youtube } from "lucide-react"
+import { useLanguage } from "@/lib/language-context"
 
 export default function Footer() {
+  const { t, language } = useLanguage()
+
   return (
     <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
       <div className="container mx-auto px-4 py-12">
@@ -16,12 +19,13 @@ export default function Footer() {
                 <h3 className="text-xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
                   Kolhapur Tourism
                 </h3>
-                <p className="text-xs text-gray-400">Cultural Capital</p>
+                <p className={`text-xs text-gray-400 ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                  {language === 'mr' ? 'सांस्कृतिक राजधानी' : language === 'hi' ? 'सांस्कृतिक राजधानी' : 'Cultural Capital'}
+                </p>
               </div>
             </div>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              Discover the rich heritage, magnificent temples, historic forts, and natural beauty of Kolhapur. Your
-              gateway to authentic Maharashtrian culture and unforgettable experiences.
+            <p className={`text-gray-300 text-sm leading-relaxed ${language !== 'en' ? 'font-devanagari' : ''}`}>
+              {t('footerDesc')}
             </p>
             <div className="flex space-x-4">
               <Link href="#" className="text-gray-400 hover:text-orange-400 transition-colors">
@@ -41,31 +45,28 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-orange-400">Quick Links</h4>
+            <h4 className={`text-lg font-semibold text-orange-400 ${language !== 'en' ? 'font-devanagari' : ''}`}>
+              {t('quickLinks')}
+            </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Tourist Places
+                <Link href="/places" className={`text-gray-300 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                  {t('places')}
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Hotels & Accommodation
+                <Link href="/hotels" className={`text-gray-300 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                  {t('hotels')}
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Restaurants & Food
+                <Link href="/food" className={`text-gray-300 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                  {t('food')}
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Travel Guide
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Cultural Events
+                <Link href="/plan-trip" className={`text-gray-300 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                  {t('planTrip')}
                 </Link>
               </li>
             </ul>
@@ -73,31 +74,28 @@ export default function Footer() {
 
           {/* Popular Destinations */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-red-400">Popular Destinations</h4>
+            <h4 className={`text-lg font-semibold text-red-400 ${language !== 'en' ? 'font-devanagari' : ''}`}>
+              {t('popularDestinations')}
+            </h4>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Mahalaxmi Temple
+                <Link href="#" className={`text-gray-300 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari text-xs' : ''}`}>
+                  {language === 'mr' ? 'महालक्ष्मी मंदिर' : 'Mahalaxmi Temple'}
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Panhala Fort
+                <Link href="#" className={`text-gray-300 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari text-xs' : ''}`}>
+                  {language === 'mr' ? 'पन्हाळा किल्ला' : 'Panhala Fort'}
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  New Palace Museum
+                <Link href="#" className={`text-gray-300 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari text-xs' : ''}`}>
+                  {language === 'mr' ? 'नया राजवाडा' : 'New Palace'}
                 </Link>
               </li>
               <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Radhanagari Wildlife Sanctuary
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-300 hover:text-white transition-colors text-sm">
-                  Gaganbawada Hills
+                <Link href="#" className={`text-gray-300 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari text-xs' : ''}`}>
+                  {language === 'mr' ? 'राधानगरी अभयारण्य' : 'Radhanagari Wildlife'}
                 </Link>
               </li>
             </ul>
@@ -105,15 +103,17 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-yellow-400">Contact Us</h4>
+            <h4 className={`text-lg font-semibold text-yellow-400 ${language !== 'en' ? 'font-devanagari' : ''}`}>
+              {t('contactUs')}
+            </h4>
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
                 <MapPin className="h-5 w-5 text-orange-400 mt-0.5 flex-shrink-0" />
-                <div>
+                <div className={language !== 'en' ? 'font-devanagari text-sm' : ''}>
                   <p className="text-gray-300 text-sm">
-                    Tourism Office, Kolhapur
+                    {language === 'mr' ? 'पर्यटन कार्यालय, कोल्हापूर' : 'Tourism Office, Kolhapur'}
                     <br />
-                    Maharashtra, India - 416001
+                    {language === 'mr' ? 'महाराष्ट्र, भारत - ४१६००१' : 'Maharashtra, India - 416001'}
                   </p>
                 </div>
               </div>
@@ -131,16 +131,16 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">© 2025 Kolhapur Tourism. All rights reserved.</p>
+          <p className={`text-gray-400 text-sm ${language !== 'en' ? 'font-devanagari' : ''}`}>{t('copyright')}</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
-              Privacy Policy
+            <Link href="#" className={`text-gray-400 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari' : ''}`}>
+              {t('privacyPolicy')}
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
-              Terms of Service
+            <Link href="#" className={`text-gray-400 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari' : ''}`}>
+              {t('termsOfService')}
             </Link>
-            <Link href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
-              Sitemap
+            <Link href="#" className={`text-gray-400 hover:text-white transition-colors text-sm ${language !== 'en' ? 'font-devanagari' : ''}`}>
+              {t('sitemap')}
             </Link>
           </div>
         </div>

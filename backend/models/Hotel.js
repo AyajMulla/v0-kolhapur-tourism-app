@@ -11,6 +11,8 @@ const HotelSchema = new mongoose.Schema({
   address: { type: String, required: true },
   phone: { type: String },
   website: { type: String },
+  talukaId: { type: String },
+  talukaName: { type: String },
 }, {
   timestamps: true,
 });

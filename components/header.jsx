@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, MapPin, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/language-context";
 import LoginModal from "@/components/login-modal";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,6 +13,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const { user, logout } = useAuth();
+  const { language, changeLanguage, t } = useLanguage();
   const { toast } = useToast();
 
   const handleLogout = () => {
@@ -30,7 +32,7 @@ export default function Header() {
   return (
     <header className="bg-white/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-orange-100">
       <div className="container mx-auto px-4">
-        {/* Top bar with contact info */}
+        {/* Top bar with contact info and language toggle */}
         <div className="hidden md:flex justify-between items-center py-2 text-sm text-gray-600 border-b border-orange-50">
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-1">
@@ -40,6 +42,27 @@ export default function Header() {
             <div className="flex items-center space-x-1">
               <Mail className="h-3 w-3" />
               <span>info@kolhapurtourism.com</span>
+            </div>
+            {/* Language Toggle */}
+            <div className="flex items-center ml-4 space-x-2 border-l border-gray-300 pl-4">
+              <button 
+                onClick={() => changeLanguage('en')} 
+                className={`px-2 py-0.5 rounded transition ${language === 'en' ? 'bg-orange-600 text-white font-bold' : 'hover:bg-orange-50'}`}
+              >
+                EN
+              </button>
+              <button 
+                onClick={() => changeLanguage('mr')} 
+                className={`px-2 py-0.5 rounded transition font-devanagari ${language === 'mr' ? 'bg-orange-600 text-white font-bold' : 'hover:bg-orange-50'}`}
+              >
+                मराठी
+              </button>
+              <button 
+                onClick={() => changeLanguage('hi')} 
+                className={`px-2 py-0.5 rounded transition font-devanagari ${language === 'hi' ? 'bg-orange-600 text-white font-bold' : 'hover:bg-orange-50'}`}
+              >
+                हिंदी
+              </button>
             </div>
           </div>
           <div className="flex items-center space-x-1">
@@ -58,8 +81,8 @@ export default function Header() {
               <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                 Kolhapur Tourism
               </h1>
-              <p className="text-xs text-gray-500">
-                Cultural Capital of Maharashtra
+              <p className="text-xs text-gray-500 font-devanagari">
+                {t('capital')}
               </p>
             </div>
           </Link>
@@ -69,47 +92,47 @@ export default function Header() {
             <Link
               href="/"
               scroll={false}
+              className={`text-gray-700 hover:text-orange-600 transition-colors font-medium ${language !== 'en' ? 'font-devanagari' : ''}`}
               onClick={(e) => {
-                // If already on home, prevent full reload
                 if (globalThis.location.pathname === "/") {
                   e.preventDefault();
                   globalThis.scrollTo({ top: 0, behavior: "smooth" });
                 }
               }}
             >
-              Home
+              {t('home')}
             </Link>
             <Link
               href="/places"
-              className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
+              className={`text-gray-700 hover:text-orange-600 transition-colors font-medium ${language !== 'en' ? 'font-devanagari' : ''}`}
             >
-              Places
+              {t('places')}
             </Link>
             <Link
               href="/culture"
-              className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
+              className={`text-gray-700 hover:text-orange-600 transition-colors font-medium ${language !== 'en' ? 'font-devanagari' : ''}`}
             >
-              Culture
+              {t('culture')}
             </Link>
             <Link
               href="/food"
-              className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
+              className={`text-gray-700 hover:text-orange-600 transition-colors font-medium ${language !== 'en' ? 'font-devanagari' : ''}`}
             >
-              Food
+              {t('food')}
             </Link>
             <Link
               href="/hotels"
-              className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
+              className={`text-gray-700 hover:text-orange-600 transition-colors font-medium ${language !== 'en' ? 'font-devanagari' : ''}`}
             >
-              Hotels
+              {t('hotels')}
             </Link>
             
             {user && (
               <Link
                 href="/plan-trip"
-                className="relative text-gray-700 hover:text-orange-600 transition-colors font-medium flex items-center"
+                className={`relative text-gray-700 hover:text-orange-600 transition-colors font-medium flex items-center ${language !== 'en' ? 'font-devanagari' : ''}`}
               >
-                Plan Trip
+                {t('planTripMenu')}
                 {user.favorites?.length > 0 && (
                   <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
                     {user.favorites.length}
@@ -120,25 +143,27 @@ export default function Header() {
             {user ? (
               <div className="flex items-center space-x-4">
                 {user.role === "admin" && (
-                  <Link href="/admin" className="text-orange-600 font-bold hover:text-red-700 transition">
-                    Admin Panel
+                  <Link href="/admin" className={`text-orange-600 font-bold hover:text-red-700 transition ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                    {t('adminPanel')}
                   </Link>
                 )}
-                <span className="text-gray-700 font-medium">Hi, {user.name}</span>
+                <span className={`text-gray-700 font-medium ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                  {language === 'en' ? `Hi, ${user.name}` : `${user.name}, नमस्कार`}
+                </span>
                 <Button 
                   onClick={handleLogout}
                   variant="outline"
-                  className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                  className={`border-orange-500 text-orange-600 hover:bg-orange-50 ${language !== 'en' ? 'font-devanagari' : ''}`}
                 >
-                  Logout
+                  {t('logout')}
                 </Button>
               </div>
             ) : (
               <Button 
                 onClick={() => setShowLogin(true)}
-                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white"
+                className={`bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white ${language !== 'en' ? 'font-devanagari' : ''}`}
               >
-                Sign In
+                {t('login')}
               </Button>
             )}
           </nav>

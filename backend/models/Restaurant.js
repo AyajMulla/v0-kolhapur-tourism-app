@@ -6,10 +6,13 @@ const RestaurantSchema = new mongoose.Schema({
   cuisine: { type: String, required: true },
   rating: { type: Number, required: true },
   priceRange: { type: String },
+  image: { type: String },
   specialties: [{ type: String }],
   address: { type: String, required: true },
   phone: { type: String },
   openHours: { type: String },
+  talukaId: { type: String },
+  talukaName: { type: String },
 }, {
   timestamps: true,
 });

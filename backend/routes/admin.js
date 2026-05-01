@@ -175,6 +175,133 @@ router.post('/places/bulk-upload', upload.single('file'), async (req, res) => {
   }
 });
 
+// @route   POST /api/admin/hotels/bulk-upload
+// @desc    Bulk import hotels from CSV or Excel file
+router.post('/hotels/bulk-upload', upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+  const ext = req.file.originalname.split('.').pop().toLowerCase();
+  let rows = [];
+
+  try {
+    if (ext === 'csv') {
+      rows = parse(req.file.buffer, { columns: true, skip_empty_lines: true, trim: true });
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      const wb = XLSX.read(req.file.buffer, { type: 'buffer' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    } else {
+      return res.status(400).json({ error: 'Unsupported file type. Upload a .csv or .xlsx file.' });
+    }
+
+    if (!rows.length) return res.status(400).json({ error: 'File is empty or has no data rows.' });
+
+    const hotels = rows.map((row) => ({
+      id: (row.id || '').trim(),
+      name: (row.name || '').trim(),
+      category: (row.category || '').trim(),
+      rating: parseFloat(row.rating) || 4.0,
+      image: (row.image || '').trim(),
+      priceRange: (row.priceRange || row.price_range || '').trim(),
+      amenities: row.amenities ? String(row.amenities).split('|').map(s => s.trim()).filter(Boolean) : [],
+      address: (row.address || '').trim(),
+      phone: (row.phone || '').trim(),
+      website: (row.website || '').trim(),
+      talukaId: (row.talukaId || row.taluka_id || '').trim(),
+      talukaName: (row.talukaName || row.taluka_name || '').trim(),
+    }));
+
+    const errors = [];
+    const valid = [];
+    hotels.forEach((h, idx) => {
+      if (!h.id || !h.name || !h.category || !h.address) {
+        errors.push({ row: idx + 2, reason: `Missing required field(s): ${[!h.id&&'id',!h.name&&'name',!h.category&&'category',!h.address&&'address'].filter(Boolean).join(', ')}` });
+      } else {
+        valid.push(h);
+      }
+    });
+
+    if (!valid.length) return res.status(400).json({ inserted: 0, skipped: 0, errors });
+
+    const result = await Hotel.insertMany(valid, { ordered: false }).catch(err => {
+      if (err.writeErrors) {
+        err.writeErrors.forEach(we => errors.push({ row: '?', reason: `Duplicate id: ${we.err?.op?.id || 'unknown'}` }));
+        return { insertedCount: err.insertedDocs ? err.insertedDocs.length : (valid.length - err.writeErrors.length) };
+      }
+      throw err;
+    });
+
+    const insertedCount = result.insertedCount !== undefined ? result.insertedCount : (Array.isArray(result) ? result.length : valid.length);
+    return res.json({ inserted: insertedCount, skipped: valid.length - insertedCount + errors.filter(e => e.reason.startsWith('Duplicate')).length, errors, total: rows.length });
+  } catch (err) {
+    console.error('Hotel bulk upload error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// @route   POST /api/admin/restaurants/bulk-upload
+// @desc    Bulk import restaurants from CSV or Excel file
+router.post('/restaurants/bulk-upload', upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+  const ext = req.file.originalname.split('.').pop().toLowerCase();
+  let rows = [];
+
+  try {
+    if (ext === 'csv') {
+      rows = parse(req.file.buffer, { columns: true, skip_empty_lines: true, trim: true });
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      const wb = XLSX.read(req.file.buffer, { type: 'buffer' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    } else {
+      return res.status(400).json({ error: 'Unsupported file type. Upload a .csv or .xlsx file.' });
+    }
+
+    if (!rows.length) return res.status(400).json({ error: 'File is empty or has no data rows.' });
+
+    const restaurants = rows.map((row) => ({
+      id: (row.id || '').trim(),
+      name: (row.name || '').trim(),
+      cuisine: (row.cuisine || '').trim(),
+      rating: parseFloat(row.rating) || 4.0,
+      priceRange: (row.priceRange || row.price_range || '').trim(),
+      specialties: row.specialties ? String(row.specialties).split('|').map(s => s.trim()).filter(Boolean) : [],
+      address: (row.address || '').trim(),
+      phone: (row.phone || '').trim(),
+      openHours: (row.openHours || row.open_hours || '').trim(),
+      talukaId: (row.talukaId || row.taluka_id || '').trim(),
+      talukaName: (row.talukaName || row.taluka_name || '').trim(),
+    }));
+
+    const errors = [];
+    const valid = [];
+    restaurants.forEach((r, idx) => {
+      if (!r.id || !r.name || !r.cuisine || !r.address) {
+        errors.push({ row: idx + 2, reason: `Missing required field(s): ${[!r.id&&'id',!r.name&&'name',!r.cuisine&&'cuisine',!r.address&&'address'].filter(Boolean).join(', ')}` });
+      } else {
+        valid.push(r);
+      }
+    });
+
+    if (!valid.length) return res.status(400).json({ inserted: 0, skipped: 0, errors });
+
+    const result = await Restaurant.insertMany(valid, { ordered: false }).catch(err => {
+      if (err.writeErrors) {
+        err.writeErrors.forEach(we => errors.push({ row: '?', reason: `Duplicate id: ${we.err?.op?.id || 'unknown'}` }));
+        return { insertedCount: err.insertedDocs ? err.insertedDocs.length : (valid.length - err.writeErrors.length) };
+      }
+      throw err;
+    });
+
+    const insertedCount = result.insertedCount !== undefined ? result.insertedCount : (Array.isArray(result) ? result.length : valid.length);
+    return res.json({ inserted: insertedCount, skipped: valid.length - insertedCount + errors.filter(e => e.reason.startsWith('Duplicate')).length, errors, total: rows.length });
+  } catch (err) {
+    console.error('Restaurant bulk upload error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.put('/places/:id', async (req, res) => {
   try {
     const updateData = { ...req.body };

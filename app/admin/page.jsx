@@ -185,13 +185,29 @@ export default function AdminDashboard() {
 
   // --- CSV IMPORT FUNCTIONS ---
   const downloadCsvTemplate = () => {
-    const headers = "id,name,description,image,category,rating,visitDuration,bestTimeToVisit,talukaId,talukaName,coordinates_lat,coordinates_lng,visitorTips";
-    const sample = "amboli-viewpoint,Amboli Viewpoint,Scenic viewpoint in the Western Ghats.,/amboli-ghat.jpg,Nature,4.5,2-3 hours,June to September,ajara,Ajara,16.0500,74.0300,Carry rainwear|Visit early morning";
+    let headers = "";
+    let sample = "";
+    let filename = "";
+
+    if (activeTab === "places") {
+      headers = "id,name,description,image,category,rating,visitDuration,bestTimeToVisit,talukaId,talukaName,coordinates_lat,coordinates_lng,visitorTips";
+      sample = "amboli-viewpoint,Amboli Viewpoint,Scenic viewpoint in the Western Ghats.,/amboli-ghat.jpg,Nature,4.5,2-3 hours,June to September,ajara,Ajara,16.0500,74.0300,Carry rainwear|Visit early morning";
+      filename = "places_import_template.csv";
+    } else if (activeTab === "hotels") {
+      headers = "id,name,category,rating,image,priceRange,amenities,address,phone,website";
+      sample = "hotel-sayaji,Sayaji Hotel,Luxury,4.8,/sayaji.jpg,₹4000-6000,Pool|Gym|Spa,Tarabai Park,0231-123456,https://sayajihotels.com";
+      filename = "hotels_import_template.csv";
+    } else if (activeTab === "restaurants") {
+      headers = "id,name,cuisine,rating,priceRange,specialties,address,phone,openHours";
+      sample = "parakh-thali,Hotel Parakh,Maharashtrian,4.7,₹300-500,Mutton Thali|Thecha,Shahupuri,0231-654321,11 AM - 11 PM";
+      filename = "restaurants_import_template.csv";
+    }
+
     const blob = new Blob([headers + "\n" + sample], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "places_import_template.csv";
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -204,7 +220,7 @@ export default function AdminDashboard() {
     const formData = new FormData();
     formData.append("file", csvFile);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/places/bulk-upload`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/${activeTab}/bulk-upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -212,7 +228,7 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Upload failed");
       setCsvResult(data);
-      fetchData(); // Refresh the places table
+      fetchData(); // Refresh the table
     } catch (err) {
       setCsvResult({ error: err.message });
     } finally {
@@ -397,7 +413,7 @@ export default function AdminDashboard() {
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh Data
             </Button>
-            {activeTab === "places" && (
+            {(activeTab === "places" || activeTab === "hotels" || activeTab === "restaurants") && (
               <Button
                 variant="outline"
                 onClick={() => { setIsCsvModalOpen(true); setCsvFile(null); setCsvResult(null); }}
@@ -560,18 +576,30 @@ export default function AdminDashboard() {
                     />
                   </div>
 
-                  {/* Image URL — only for places (required there) */}
-                  {activeTab === 'places' && (
+                  {/* Image URL — for all main entities */}
+                  {(activeTab === 'places' || activeTab === 'hotels' || activeTab === 'restaurants') && (
                     <div className="space-y-2">
-                      <Label>Image URL <span className="text-red-500">*</span></Label>
-                      <Input required value={formData.image || ""} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="/placeholder.jpg" />
+                      <Label>Image URL</Label>
+                      <Input value={formData.image || ""} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="e.g. /hotel-name.jpg or https://image.url" />
                     </div>
                   )}
 
-                  <div className="space-y-2">
-                    <Label>Rating</Label>
-                    <Input type="number" step="0.1" min="1" max="5" required value={formData.rating ?? 4.0} onChange={e => setFormData({...formData, rating: parseFloat(e.target.value)})} />
-                  </div>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Taluka ID</Label>
+                          <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Taluka Name</Label>
+                          <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Rating</Label>
+                        <Input type="number" step="0.1" min="1" max="5" required value={formData.rating ?? 4.0} onChange={e => setFormData({...formData, rating: parseFloat(e.target.value)})} />
+                      </div>
+                    </div>
 
                   {activeTab === "places" ? (
                     <div className="space-y-4">
@@ -600,6 +628,16 @@ export default function AdminDashboard() {
                           onChange={e => setFormData({...formData, visitorTips: e.target.value.split(",").map(s => s.trim()).filter(Boolean)})}
                           placeholder="e.g. Bring water, Wear shoes..."
                         />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Taluka ID</Label>
+                          <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Taluka Name</Label>
+                          <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -714,7 +752,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <div>
                   <p className="text-sm font-semibold text-blue-800">Need a template?</p>
-                  <p className="text-xs text-blue-600 mt-0.5">Download the sample CSV with correct column headers</p>
+                  <p className="text-xs text-blue-600 mt-0.5">Download the sample CSV for {activeTab}</p>
                 </div>
                 <Button size="sm" variant="outline" onClick={downloadCsvTemplate} className="border-blue-300 text-blue-700 hover:bg-blue-100 shrink-0">
                   <Download className="h-3.5 w-3.5 mr-1.5" /> Template
@@ -757,14 +795,26 @@ export default function AdminDashboard() {
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                 <p className="text-xs font-semibold text-gray-600 mb-2">📋 Required CSV Columns</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {['id','name','description','category'].map(c => (
-                    <span key={c} className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-mono border border-red-200">{c} *</span>
-                  ))}
-                  {['image','rating','visitDuration','bestTimeToVisit','talukaId','talukaName','coordinates_lat','coordinates_lng','visitorTips'].map(c => (
-                    <span key={c} className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full font-mono">{c}</span>
-                  ))}
+                  {activeTab === "places" && (
+                    <>
+                      {['id','name','description','category'].map(c => <span key={c} className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-mono border border-red-200">{c} *</span>)}
+                      {['image','rating','visitDuration','bestTimeToVisit','talukaId','talukaName','coordinates_lat','coordinates_lng','visitorTips'].map(c => <span key={c} className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full font-mono">{c}</span>)}
+                    </>
+                  )}
+                  {activeTab === "hotels" && (
+                    <>
+                      {['id','name','category','address'].map(c => <span key={c} className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-mono border border-red-200">{c} *</span>)}
+                      {['rating','image','priceRange','amenities','phone','website'].map(c => <span key={c} className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full font-mono">{c}</span>)}
+                    </>
+                  )}
+                  {activeTab === "restaurants" && (
+                    <>
+                      {['id','name','cuisine','address'].map(c => <span key={c} className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-mono border border-red-200">{c} *</span>)}
+                      {['rating','priceRange','specialties','phone','openHours'].map(c => <span key={c} className="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full font-mono">{c}</span>)}
+                    </>
+                  )}
                 </div>
-                <p className="text-xs text-gray-400 mt-2">* Required &nbsp;|&nbsp; Use <code className="bg-gray-200 px-1 rounded">|</code> to separate multiple visitorTips</p>
+                <p className="text-xs text-gray-400 mt-2">* Required &nbsp;|&nbsp; Use <code className="bg-gray-200 px-1 rounded">|</code> for lists (amenities, specialties)</p>
               </div>
 
               {/* Upload Result */}

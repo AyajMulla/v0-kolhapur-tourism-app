@@ -10,7 +10,10 @@ import { useAuth } from "@/lib/auth-context"
 import LoginModal from "./login-modal"
 import { useToast } from "@/hooks/use-toast"
 
+import { useLanguage } from "@/lib/language-context"
+
 export default function TalukaGrid({ talukas }) {
+  const { t, language } = useLanguage()
   const [selectedPlace, setSelectedPlace] = useState(null)
   const [expandedTalukas, setExpandedTalukas] = useState({})
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
@@ -55,10 +58,11 @@ export default function TalukaGrid({ talukas }) {
     <div className="space-y-12">
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
       <div className="text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Explore Kolhapur by Region</h2>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Discover the diverse attractions across different talukas of Kolhapur, each offering unique experiences and
-          cultural treasures.
+        <h2 className={`text-3xl md:text-4xl font-bold text-gray-800 mb-4 ${language !== 'en' ? 'font-devanagari' : ''}`}>
+          {t('exploreRegion')}
+        </h2>
+        <p className={`text-lg text-gray-600 max-w-3xl mx-auto ${language !== 'en' ? 'font-devanagari' : ''}`}>
+          {t('exploreRegionDesc')}
         </p>
       </div>
 
@@ -66,8 +70,12 @@ export default function TalukaGrid({ talukas }) {
         <div key={taluka.id} className="space-y-6">
           {/* Taluka Header */}
           <div className="text-center">
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{taluka.name}</h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">{taluka.description}</p>
+            <h3 className={`text-2xl md:text-3xl font-bold text-gray-800 mb-2 ${language !== 'en' ? 'font-devanagari' : ''}`}>
+              {taluka.name}
+            </h3>
+            <p className={`text-gray-600 max-w-2xl mx-auto ${language !== 'en' ? 'font-devanagari' : ''}`}>
+              {taluka.description}
+            </p>
           </div>
 
           {/* Places Grid */}
@@ -103,10 +111,12 @@ export default function TalukaGrid({ talukas }) {
                     </Button>
                   </div>
                   <div className="absolute bottom-4 left-4 right-4">
-                    <h4 className="text-white font-bold text-xl mb-2 text-balance">{place.name}</h4>
+                    <h4 className={`text-white font-bold text-xl mb-2 text-balance ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                      {place.name}
+                    </h4>
                     <div className="flex items-center text-white/90 text-sm">
                       <MapPin className="h-4 w-4 mr-1" />
-                      <span>{taluka.name}</span>
+                      <span className={language !== 'en' ? 'font-devanagari' : ''}>{taluka.name}</span>
                     </div>
                   </div>
                 </div>
@@ -116,23 +126,27 @@ export default function TalukaGrid({ talukas }) {
                     <div className="flex items-center">
                       <Star className="h-4 w-4 text-yellow-500 mr-1" />
                       <span className="font-medium">{place.rating}</span>
-                      <span className="text-gray-500 text-sm ml-1">rating</span>
+                      <span className={`text-gray-500 text-sm ml-1 ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                        {t('rating')}
+                      </span>
                     </div>
                     <div className="flex items-center text-gray-500 text-sm">
                       <Clock className="h-4 w-4 mr-1" />
-                      <span>{place.visitDuration}</span>
+                      <span className={language !== 'en' ? 'font-devanagari' : ''}>{place.visitDuration}</span>
                     </div>
                   </div>
 
-                  <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed mb-4">{place.description}</p>
+                  <p className={`text-gray-600 text-sm line-clamp-3 leading-relaxed mb-4 ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                    {place.description}
+                  </p>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center text-gray-500 text-sm">
+                    <div className={`flex items-center text-gray-500 text-sm ${language !== 'en' ? 'font-devanagari' : ''}`}>
                       <Users className="h-4 w-4 mr-1" />
-                      <span>Perfect for families</span>
+                      <span>{t('perfectForFamilies')}</span>
                     </div>
-                    <div className="text-orange-600 font-medium text-sm hover:text-orange-700 transition-colors">
-                      Learn More →
+                    <div className={`text-orange-600 font-medium text-sm hover:text-orange-700 transition-colors ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                      {t('learnMore')} →
                     </div>
                   </div>
                 </CardContent>
@@ -148,9 +162,13 @@ export default function TalukaGrid({ talukas }) {
                 onClick={() => toggleExpand(taluka.id)}
               >
                 {expandedTalukas[taluka.id] ? (
-                  <><ChevronUp className="w-4 h-4 mr-2" /> Show Less</>
+                  <span className={`flex items-center ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                    <ChevronUp className="w-4 h-4 mr-2" /> {t('showLess')}
+                  </span>
                 ) : (
-                  <><ChevronDown className="w-4 h-4 mr-2" /> Show {taluka.places.length - 3} More Options</>
+                  <span className={`flex items-center ${language !== 'en' ? 'font-devanagari' : ''}`}>
+                    <ChevronDown className="w-4 h-4 mr-2" /> {t('showMore')}
+                  </span>
                 )}
               </Button>
             </div>
