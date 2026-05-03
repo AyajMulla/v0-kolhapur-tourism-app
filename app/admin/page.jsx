@@ -584,22 +584,6 @@ export default function AdminDashboard() {
                     </div>
                   )}
 
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Taluka ID</Label>
-                          <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Taluka Name</Label>
-                          <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Rating</Label>
-                        <Input type="number" step="0.1" min="1" max="5" required value={formData.rating ?? 4.0} onChange={e => setFormData({...formData, rating: parseFloat(e.target.value)})} />
-                      </div>
-                    </div>
 
                   {activeTab === "places" ? (
                     <div className="space-y-4">
@@ -631,34 +615,15 @@ export default function AdminDashboard() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Taluka ID</Label>
-                          <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Taluka Name</Label>
-                          <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Taluka ID</Label>
-                          <Input value={formData.talukaId || ""} onChange={e => setFormData({...formData, talukaId: e.target.value})} placeholder="e.g. karveer" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Taluka Name</Label>
-                          <Input value={formData.talukaName || ""} onChange={e => setFormData({...formData, talukaName: e.target.value})} placeholder="e.g. Kolhapur City" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
                           <Label>Latitude</Label>
                           <Input
                             type="number"
                             step="0.0001"
-                            value={formData.coordinates?.[0] || ""}
+                            value={formData.coordinates?.[0] ?? ""}
                             onChange={e => {
+                              const val = e.target.value === "" ? 0 : parseFloat(e.target.value);
                               const coords = [...(formData.coordinates || [0, 0])];
-                              coords[0] = parseFloat(e.target.value);
+                              coords[0] = isNaN(val) ? 0 : val;
                               setFormData({...formData, coordinates: coords});
                             }}
                             placeholder="e.g. 16.7050"
@@ -669,15 +634,20 @@ export default function AdminDashboard() {
                           <Input
                             type="number"
                             step="0.0001"
-                            value={formData.coordinates?.[1] || ""}
+                            value={formData.coordinates?.[1] ?? ""}
                             onChange={e => {
+                              const val = e.target.value === "" ? 0 : parseFloat(e.target.value);
                               const coords = [...(formData.coordinates || [0, 0])];
-                              coords[1] = parseFloat(e.target.value);
+                              coords[1] = isNaN(val) ? 0 : val;
                               setFormData({...formData, coordinates: coords});
                             }}
                             placeholder="e.g. 74.2433"
                           />
                         </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Rating</Label>
+                        <Input type="number" step="0.1" min="1" max="5" required value={formData.rating ?? 4.0} onChange={e => setFormData({...formData, rating: parseFloat(e.target.value) || 4.0})} />
                       </div>
                     </div>
                   ) : (

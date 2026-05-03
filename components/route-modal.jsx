@@ -28,16 +28,36 @@ export default function RouteModal({ destination, onClose }) {
       let destCoords = null
 
       // Prefer explicit coordinates from the database, fallback to Geocoding
-      if (destination.coordinates && destination.coordinates.length === 2) {
+      if (destination.coordinates && destination.coordinates.length === 2 && destination.coordinates[0] !== 0) {
         destCoords = destination.coordinates
       } else {
         try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination.name + ", Maharashtra, India")}`)
-          const data = await res.json()
+          // Try specific search first
+          let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination.name + ", " + (destination.talukaName || "") + ", Kolhapur, Maharashtra, India")}`)
+          let data = await res.json()
+          
+          if (!data || data.length === 0) {
+            // Fallback 1: Simpler search
+            res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination.name + ", Kolhapur, India")}`)
+            data = await res.json()
+          }
+
           if (data && data.length > 0) {
             destCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)]
+            console.log(`Found coordinates for ${destination.name}:`, destCoords)
+          } else {
+             // Fallback 2: Taluka center if place not found
+             res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent((destination.talukaName || "Kolhapur") + ", Maharashtra, India")}`)
+             data = await res.json()
+             if (data && data.length > 0) {
+                destCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)]
+             }
           }
-        } catch(err) { console.error("Geocoding failed", err) }
+        } catch(err) { 
+          console.error("Geocoding failed", err)
+          // Default to Kolhapur city center as absolute fallback for destination
+          destCoords = [16.7050, 74.2433]
+        }
       }
 
       // Get user location

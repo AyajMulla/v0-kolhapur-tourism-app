@@ -376,7 +376,7 @@ export default function PlaceDetailModal({ place, onClose }) {
               <TabsContent value="map" className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-4">Location Map</h3>
-                  <MapView name={place.name} />
+                  <MapView name={place.name} coordinates={place.coordinates} />
                 </div>
               </TabsContent>
             </Tabs>

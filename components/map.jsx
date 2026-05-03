@@ -8,12 +8,12 @@ export default function Map({ position, name, zoom, showRoute, destinationCoords
   const mapContainerRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const routingControlRef = useRef(null)
-  const [targetCoords, setTargetCoords] = useState(position)
+  const [targetCoords, setTargetCoords] = useState(position || [16.705, 74.243])
 
   // 1. Geocode the name if showRoute is needed, to get accurate destination coordinates
   useEffect(() => {
     if (showRoute) {
-      if (destinationCoords) {
+      if (destinationCoords && Array.isArray(destinationCoords) && destinationCoords.length === 2) {
         setTargetCoords(destinationCoords)
       } else if (name) {
         // Small delay to prevent rate limiting
@@ -65,6 +65,8 @@ export default function Map({ position, name, zoom, showRoute, destinationCoords
     require("leaflet-routing-machine")
     require("leaflet-routing-machine/dist/leaflet-routing-machine.css")
 
+    if (!targetCoords || !Array.isArray(targetCoords) || targetCoords.length !== 2) return
+
     const map = L.map(mapContainerRef.current).setView(targetCoords, zoom)
     mapInstanceRef.current = map
 
@@ -89,6 +91,10 @@ export default function Map({ position, name, zoom, showRoute, destinationCoords
               showAlternatives: true,
               addWaypoints: false,
               fitSelectedRoutes: true,
+              router: L.Routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1',
+                timeout: 30000 // Increase timeout to 30s
+              }),
               lineOptions: {
                 styles: [{ color: '#f97316', weight: 5, opacity: 0.9 }]
               },
@@ -101,6 +107,25 @@ export default function Map({ position, name, zoom, showRoute, destinationCoords
                 return null;
               }
             }).addTo(map)
+
+            // Add error handling for routing
+            routingControlRef.current.on('routingerror', (e) => {
+              console.error("Routing error:", e.error);
+              if (mapInstanceRef.current === map) {
+                const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${targetCoords[0]},${targetCoords[1]}&travelmode=driving`;
+                L.popup()
+                  .setLatLng(targetCoords)
+                  .setContent(`
+                    <div class="p-2">
+                      <p class="text-sm font-medium mb-2">Routing service is currently slow.</p>
+                      <a href="${googleMapsUrl}" target="_blank" class="block text-center px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors">
+                        Open in Google Maps
+                      </a>
+                    </div>
+                  `)
+                  .openOn(map);
+              }
+            });
           },
           (err) => {
             console.error("Geolocation error:", err)
