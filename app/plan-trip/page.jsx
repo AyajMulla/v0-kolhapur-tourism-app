@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/lib/auth-context"
+import { Heart } from "lucide-react"
 
 export default function PlanTripPage() {
   const { t, language } = useLanguage()
@@ -21,6 +23,10 @@ export default function PlanTripPage() {
   const [allPlaces, setAllPlaces] = useState([])
   const [allHotels, setAllHotels] = useState([])
   const [allRestaurants, setAllRestaurants] = useState([])
+  const { user, token } = useAuth()
+  const [planSource, setPlanSource] = useState('interests') // 'interests' or 'wishlist'
+
+  const favoritePlaces = allPlaces.filter(p => user?.favorites?.includes(p.id))
 
   useEffect(() => {
     Promise.all([
@@ -43,10 +49,19 @@ export default function PlanTripPage() {
   }
 
   const generateItinerary = () => {
-    if (interests.length === 0) {
+    if (planSource === 'interests' && interests.length === 0) {
       toast({
         title: "Selection Required",
         description: "Please select at least one interest.",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    if (planSource === 'wishlist' && favoritePlaces.length === 0) {
+      toast({
+        title: "Wishlist Empty",
+        description: "Please add some places to your wishlist first.",
         variant: "destructive"
       })
       return
@@ -55,7 +70,13 @@ export default function PlanTripPage() {
     setLoading(true)
     
     setTimeout(() => {
-      let filtered = allPlaces.filter(p => interests.includes(p.category))
+      let filtered = []
+      if (planSource === 'wishlist') {
+        filtered = [...favoritePlaces]
+      } else {
+        filtered = allPlaces.filter(p => interests.includes(p.category))
+      }
+
       if (filtered.length === 0) filtered = allPlaces.slice(0, 15)
 
       const grouped = {}
@@ -208,10 +229,57 @@ export default function PlanTripPage() {
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   Generating...
                 </div>
-              ) : "Generate My Trip Plan"}
+              ) : `Generate Trip from ${planSource === 'interests' ? 'Interests' : 'Wishlist'}`}
             </Button>
           </CardContent>
         </Card>
+
+        {/* Wishlist Section */}
+        {user && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                <Heart className="mr-2 h-6 w-6 text-red-500 fill-red-500" />
+                Your Wishlist ({favoritePlaces.length})
+              </h2>
+              <div className="flex bg-gray-100 p-1 rounded-lg">
+                <button 
+                  onClick={() => setPlanSource('interests')}
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${planSource === 'interests' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  By Interests
+                </button>
+                <button 
+                  onClick={() => setPlanSource('wishlist')}
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${planSource === 'wishlist' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  By Wishlist
+                </button>
+              </div>
+            </div>
+
+            {favoritePlaces.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {favoritePlaces.map(place => (
+                  <div key={place.id} className="group relative rounded-xl overflow-hidden aspect-video bg-gray-200">
+                    <img src={place.image} alt={place.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-3">
+                      <p className="text-white text-xs font-bold truncate">{place.name}</p>
+                      <p className="text-white/70 text-[10px]">{place.talukaName}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 border-gray-200 bg-transparent">
+                <CardContent className="p-8 text-center">
+                  <Heart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500">Your wishlist is empty. Save some places to plan a custom trip!</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
         {/* Results */}
         {itinerary && (
